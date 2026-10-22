@@ -1,1 +1,1047 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratorio de Innovación</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: banda azul de título; fila de 7 estaciones; a la izquierda el tablero de control (presupuesto y camino) y a la derecha la estación activa. En celular se apilan. */
+:root {
+  --bg: #F3F6FB; --surface: #FFFFFF; --ink: #0B2A5C; --muted: #53627C; --line: #DAE1ED;
+  --accent: #DB5839; --accent-ink: #FFFFFF; --teal: #2E9BC2; --soft: #FBE7DD;
+  --good: #1F8A5B; --good-bg: #E3F4EC; --warn: #B7791F; --warn-bg: #FBF0D9; --bad: #C0392B; --bad-bg: #FBE4E0;
+  --hero1: #0B2A5C; --hero2: #1D56A8; --hero-ink: #FFFFFF; --hero-mute: #C9D6EE;
+  --b1: #0B2A5C; --b2: #DB5839; --b3: #2E9BC2; --b4: #B84428; --b5: #3A4A86;
+  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Nunito Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1426; --surface: #14203A; --ink: #E8EDF7; --muted: #9DAAC4; --line: #263556;
+    --accent: #F07A5A; --accent-ink: #1A0E0A; --teal: #4CB6DB; --soft: #2A2230;
+    --good: #46C08A; --good-bg: #12302A; --warn: #E0A64A; --warn-bg: #33291A; --bad: #EE7A6C; --bad-bg: #3A1F24;
+    --hero1: #14203A; --hero2: #1D3566; --hero-ink: #F2F5FB; --hero-mute: #A9B7D3;
+    --b1: #5B79C9; --b2: #F07A5A; --b3: #3FA6CC; --b4: #D2674B; --b5: #7A8FD6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1426; --surface: #14203A; --ink: #E8EDF7; --muted: #9DAAC4; --line: #263556;
+  --accent: #F07A5A; --accent-ink: #1A0E0A; --teal: #4CB6DB; --soft: #2A2230;
+  --good: #46C08A; --good-bg: #12302A; --warn: #E0A64A; --warn-bg: #33291A; --bad: #EE7A6C; --bad-bg: #3A1F24;
+  --hero1: #14203A; --hero2: #1D3566; --hero-ink: #F2F5FB; --hero-mute: #A9B7D3;
+  --b1: #5B79C9; --b2: #F07A5A; --b3: #3FA6CC; --b4: #D2674B; --b5: #7A8FD6;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.15rem; } h3 { font-size: 1.02rem; }
+p { margin: 0; }
+.muted { color: var(--muted); } .tiny { font-size: .85rem; }
+.hero { background: linear-gradient(120deg, var(--hero1), var(--hero2)); color: var(--hero-ink); border-radius: 16px; padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; right: -40px; bottom: -50px; width: 230px; height: 230px; border-radius: 50%; border: 36px solid rgba(255,255,255,.07); }
+.hero .eyebrow { font-size: .78rem; letter-spacing: .09em; text-transform: uppercase; color: var(--hero-mute); font-weight: 700; }
+.hero h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); }
+.hero p { color: var(--hero-mute); max-width: 68ch; font-size: 1.04rem; }
+.hero .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; position: relative; z-index: 1; }
+.hero .tags span { font-size: .8rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.14); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.col { display: flex; flex-direction: column; gap: 14px; }
+.rules { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; list-style: none; margin: 0; padding: 0; }
+.rules li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; align-items: start; font-size: .88rem; color: var(--muted); }
+.rules .n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; color: #fff; font-size: .92rem; }
+.rules li:nth-child(1) .n { background: var(--b1); } .rules li:nth-child(2) .n { background: var(--b2); } .rules li:nth-child(3) .n { background: var(--b3); }
+.rules li:nth-child(4) .n { background: var(--b4); } .rules li:nth-child(5) .n { background: var(--b5); }
+.rules b { display: block; color: var(--ink); }
+button {
+  font: inherit; font-weight: 700; cursor: pointer; border-radius: 10px; padding: 11px 18px; border: 1.5px solid var(--accent);
+  background: var(--accent); color: var(--accent-ink); transition: transform .12s ease, filter .12s ease;
+}
+button:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button:focus-visible, textarea:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.stage { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
+.left { position: sticky; top: 12px; }
+.tower svg { width: 100%; max-width: 290px; height: auto; display: block; margin: 0 auto; overflow: visible; }
+.tower g.brick { transition: transform .9s cubic-bezier(.5,0,.8,.4), opacity .9s ease; transform-box: fill-box; transform-origin: center; }
+.tower g.drop { animation: dropIn .7s cubic-bezier(.2,.9,.3,1.25) both; }
+@keyframes dropIn { from { transform: translateY(-170px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.tower svg.wobble { animation: wobble 1.1s ease-in-out 2; transform-origin: 50% 95%; }
+@keyframes wobble { 0%,100% { transform: rotate(0); } 25% { transform: rotate(3.2deg); } 75% { transform: rotate(-3.2deg); } }
+.tower svg.glow { animation: glow 1.6s ease-in-out 2; }
+@keyframes glow { 0%,100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 14px var(--good)); } }
+.cap { text-align: center; }
+.kpi { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
+.kpi .lab { display: flex; justify-content: space-between; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.kpi .val { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .val small { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.kpi.alert-warn { border-color: var(--warn); } .kpi.alert-bad { border-color: var(--bad); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px var(--bad-bg); } }
+.track { height: 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; border-radius: 999px; background: var(--teal); transition: width .7s cubic-bezier(.3,.8,.3,1), background-color .4s ease; }
+.people { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.pp { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .72rem; color: var(--muted); text-align: center; line-height: 1.2; }
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: .9rem; background: var(--bg); border: 3px solid var(--line); color: var(--ink); transition: border-color .4s ease, background-color .4s ease, transform .4s ease; }
+.av.key { border-color: var(--accent); }
+.av.fav { border-color: var(--good); background: var(--good-bg); transform: scale(1.08); } .av.cond { border-color: var(--warn); background: var(--warn-bg); transform: scale(1.08); } .av.contra { border-color: var(--bad); background: var(--bad-bg); transform: scale(1.08); }
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.sp { font-size: .72rem; font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 8px; border: 1px solid var(--line); color: var(--muted); border-top: 4px solid var(--line); transition: all .3s ease; }
+.sp.cur { color: var(--ink); background: var(--soft); border-top-color: var(--accent); }
+.sp.ok { color: var(--ink); border-top-color: var(--c); }
+.dossier { border: 1.5px dashed var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.dossier .st { align-self: flex-start; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 6px; padding: 1px 8px; }
+.facts { display: flex; gap: 8px; flex-wrap: wrap; }
+.fact { font-size: .82rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.fact.money { color: var(--good); border-color: var(--good); }
+.chs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ch { text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); border-left: 6px solid var(--c); padding: 12px 14px; font-weight: 600; line-height: 1.35; display: flex; flex-direction: column; gap: 4px; }
+.ch:hover:not(:disabled) { border-color: var(--c); }
+.ch b { font-family: var(--font-display); font-size: .95rem; }
+.ch span { font-weight: 400; color: var(--muted); font-size: .86rem; }
+.ch .m { font-weight: 700; color: var(--good); font-size: .8rem; }
+.who { font-size: .85rem; font-weight: 700; color: var(--accent); }
+.ask { font-weight: 700; }
+.options { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+.opt { position: relative; text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); border-left: 6px solid var(--bc); font-weight: 600; padding: 14px 14px 12px; line-height: 1.4; display: flex; flex-direction: column; gap: 8px; animation: rise .35s ease both; }
+.opt::before { content: ""; position: absolute; top: -7px; left: 18px; width: 22px; height: 7px; border-radius: 4px 4px 0 0; background: var(--bc); box-shadow: 34px 0 var(--bc), 68px 0 var(--bc), 102px 0 var(--bc); }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.opt:hover:not(:disabled) { border-color: var(--teal); border-left-color: var(--bc); transform: translateY(-2px); }
+.opt.picked { border-color: var(--accent); border-left-color: var(--bc); background: var(--soft); opacity: 1; }
+.opt:disabled:not(.picked) { opacity: .5; cursor: default; }
+.cost { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cost span { font-size: .78rem; font-weight: 700; padding: 1px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
+.cost .mo { color: var(--good); border-color: var(--good); }
+.cost .no { color: var(--bad); border-color: var(--bad); }
+.cost .tech { color: var(--teal); border-color: var(--teal); }
+.fb { border-left: 5px solid var(--c); background: var(--bg); border-radius: 0 10px 10px 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; animation: rise .35s ease both; }
+.fb.good { --c: var(--good); background: var(--good-bg); } .fb.warn { --c: var(--warn); background: var(--warn-bg); } .fb.bad { --c: var(--bad); background: var(--bad-bg); }
+.fb strong { font-size: .82rem; letter-spacing: .05em; text-transform: uppercase; color: var(--c); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: .8rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); font-variant-numeric: tabular-nums; background: var(--surface); }
+.chip.p { color: var(--good); border-color: var(--good); } .chip.m { color: var(--bad); border-color: var(--bad); } .chip.z { color: var(--muted); }
+.alerts { display: flex; flex-direction: column; gap: 8px; }
+.al { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; border: 1.5px solid var(--c); background: var(--bg); border-radius: 10px; padding: 8px 12px; font-size: .9rem; animation: slideIn .4s ease both; }
+.al i { width: 24px; height: 24px; border-radius: 50%; background: var(--c); color: #fff; font-style: normal; font-weight: 700; display: grid; place-items: center; font-size: .85rem; }
+.al.ok { --c: var(--good); background: var(--good-bg); } .al.warn { --c: var(--warn); background: var(--warn-bg); } .al.bad { --c: var(--bad); background: var(--bad-bg); }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.vote { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: start; border: 1px solid var(--line); border-left: 6px solid var(--c); border-radius: 12px; padding: 12px; animation: rise .5s ease both; }
+.vote.fav { --c: var(--good); } .vote.cond { --c: var(--warn); } .vote.contra { --c: var(--bad); }
+.vote .av { width: 44px; height: 44px; }
+.vote .t { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.vote .t b { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.vote .badge { font-size: .76rem; padding: 1px 10px; border-radius: 999px; color: #fff; background: var(--c); }
+.vote q { font-style: italic; }
+.vote .qq { font-size: .85rem; color: var(--muted); }
+.bar { display: grid; grid-template-columns: 130px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: .9rem; }
+.bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.event { border: 1.5px solid var(--c, var(--accent)); background: var(--soft); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; animation: rise .4s ease both; }
+.event.ok { --c: var(--good); background: var(--good-bg); } .event.warn { --c: var(--warn); background: var(--warn-bg); } .event.bad { --c: var(--bad); background: var(--bad-bg); animation: shake .6s ease both; }
+@keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+.big { font-family: var(--font-display); font-size: clamp(2.4rem, 7vw, 3.2rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.mats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mat { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mat svg { width: 100%; height: auto; display: block; }
+.mat text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+.plan { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.plan > div { border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.plan b { font-family: var(--font-display); color: var(--c); }
+.plan ul { margin: 0; padding-left: 18px; font-size: .88rem; }
+textarea { font: inherit; width: 100%; min-height: 110px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; }
+footer { font-size: .82rem; color: var(--muted); }
+@media (max-width: 900px) {
+  .stage, .mats, .chs, .rules, .plan { grid-template-columns: minmax(0, 1fr); }
+  .left { position: static; }
+}
+@media (max-width: 480px) { .bar { grid-template-columns: 96px minmax(0, 1fr) 40px; } .hero { padding: 20px 18px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+:root { --kP: #2F5FC4; --kT: #0B8CA8; --kR: #A8660A; --kC: #D4552F; --kD: #2C8F5B; --plate: #5C7A99; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --kP: #5C86E6; --kT: #2FB1CF; --kR: #D6931F; --kC: #EE7A55; --kD: #46C08A; --plate: #3B516B; } }
+:root[data-theme="dark"] { --kP: #5C86E6; --kT: #2FB1CF; --kR: #D6931F; --kC: #EE7A55; --kD: #46C08A; --plate: #3B516B; }
+.board { position: relative; }
+.board svg { width: 100%; height: auto; display: block; touch-action: manipulation; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+.board svg:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.board svg.drawing { cursor: crosshair; } .board svg.erasing { cursor: not-allowed; }
+.board .gl { stroke: var(--line); stroke-width: 1; }
+.brk .body { stroke: rgba(0,0,0,.28); stroke-width: 1.5; }
+.brk text { fill: #fff; font-family: var(--font-display); font-weight: 700; font-size: 13px; pointer-events: none; }
+.brk.fall { animation: fall .55s cubic-bezier(.35,0,.7,1.35) both; }
+@keyframes fall { from { transform: translateY(var(--d, -200px)); opacity: .2; } to { transform: none; opacity: 1; } }
+.brk.bad .body { stroke: var(--bad); stroke-width: 3; stroke-dasharray: 6 4; animation: dash 1s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -20; } }
+.brk .warnic { fill: var(--bad); } .brk .warnt { fill: #fff; font-size: 12px; }
+.gh { opacity: .55; pointer-events: none; } .gh .body { stroke-dasharray: 5 4; }
+.gh.no .body { stroke: var(--bad); stroke-width: 3; }
+.guide { fill: var(--teal); opacity: .09; pointer-events: none; }
+.board svg.wobble { animation: wobble 1.1s ease-in-out 2; transform-origin: 50% 95%; }
+.board svg.shake { animation: bshake .9s ease-in-out both; }
+@keyframes bshake { 10%,50%,90% { transform: translateX(-7px) rotate(-.6deg); } 30%,70% { transform: translateX(7px) rotate(.6deg); } }
+@keyframes wobble { 0%,100% { transform: rotate(0); } 25% { transform: rotate(2.2deg); } 75% { transform: rotate(-2.2deg); } }
+.board svg.glow { animation: glow 1.6s ease-in-out 2; }
+@keyframes glow { 0%,100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 14px var(--good)); } }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kpi .val.t { font-size: 1.7rem; }
+.pause { align-self: flex-start; padding: 2px 10px; font-size: .78rem; border-radius: 999px; }
+.ctrls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ctrls button { padding: 8px 14px; font-size: .9rem; }
+.pal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pgrp { display: contents; }
+.pc { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); border-top: 5px solid var(--c); padding: 8px 9px; font-size: .8rem; font-weight: 700; line-height: 1.25; }
+.pc svg { width: 100%; height: 30px; }
+.pc small { font-weight: 600; color: var(--muted); font-size: .74rem; font-variant-numeric: tabular-nums; }
+.pc.sel { background: var(--soft); border-color: var(--accent); border-top-color: var(--c); box-shadow: 0 0 0 2px var(--accent); }
+.pc:disabled { opacity: .45; cursor: not-allowed; }
+.legend { display: flex; flex-direction: column; gap: 8px; }
+.lg { display: grid; grid-template-columns: 12px 130px minmax(0, 1fr) 54px; gap: 8px; align-items: center; font-size: .86rem; }
+.lg i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+.lg b { text-align: right; font-variant-numeric: tabular-nums; font-size: .8rem; }
+.lg .fill { background-color: var(--c); }
+.sub { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.story label.q { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .92rem; }
+.story textarea { min-height: 70px; font-weight: 400; }
+.radios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.radios label { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; font-size: .86rem; background: var(--bg); }
+.radios input { position: absolute; opacity: 0; }
+.radios label:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+.radios label:has(input:focus-visible) { outline: 3px solid var(--teal); outline-offset: 2px; }
+.radios b { font-family: var(--font-display); font-size: .92rem; }
+@media (max-width: 900px) { .radios, .pal { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lg { grid-template-columns: 12px 100px minmax(0, 1fr) 50px; } }
 
+.stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 900px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.journey { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; list-style: none; margin: 0; padding: 0; }
+.jp { font-size: .74rem; font-weight: 700; text-align: center; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--line); border-top: 4px solid var(--line); color: var(--muted); background: var(--surface); line-height: 1.2; transition: all .3s ease; }
+.jp b { display: block; font-family: var(--font-display); font-size: .95rem; }
+.jp.cur { color: var(--ink); background: var(--soft); border-top-color: var(--accent); }
+.jp.ok { color: var(--ink); border-top-color: var(--good); }
+.lab2 { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 18px; align-items: start; }
+.side { position: sticky; top: 12px; }
+.path { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.path li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: .84rem; color: var(--muted); }
+.path li i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-size: .72rem; font-weight: 700; }
+.path li.ok { color: var(--ink); } .path li.ok i { background: var(--good); border-color: var(--good); color: #fff; }
+.path li.cur { color: var(--ink); font-weight: 700; } .path li.cur i { border-color: var(--accent); color: var(--accent); }
+.path li em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--good); font-size: .8rem; }
+.shead { display: flex; flex-direction: column; gap: 6px; }
+.shead .tag { font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.how { border-left: 5px solid var(--teal); background: var(--bg); border-radius: 0 10px 10px 0; padding: 10px 12px; font-size: .9rem; }
+.how b { display: block; font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.role { align-self: flex-start; font-size: .78rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--soft); border: 1px solid var(--accent); }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.tog { text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); font-weight: 600; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
+.tog .bx { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line); flex: none; display: grid; place-items: center; font-size: .8rem; color: #fff; margin-top: 1px; }
+.tog[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); } .tog[aria-pressed="true"] .bx { background: var(--accent); border-color: var(--accent); }
+.tog:disabled { opacity: .55; cursor: default; }
+.team { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding-top: 26px; }
+.tm { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .74rem; color: var(--muted); }
+.tm .av { width: 44px; height: 44px; }
+.tm .bub { position: absolute; top: -26px; font-size: .72rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--good); color: #fff; opacity: 0; transform: translateY(10px) scale(.7); }
+.tm .bub.on { animation: pop .5s cubic-bezier(.2,.9,.3,1.4) both; }
+@keyframes pop { to { opacity: 1; transform: none; } }
+.tm.quiet .av { opacity: .5; }
+.hyp { display: flex; flex-direction: column; gap: 10px; }
+.hy { display: grid; grid-template-columns: minmax(0, 1fr) 150px 36px; gap: 10px; align-items: center; font-size: .88rem; }
+.hy b { text-align: right; font-variant-numeric: tabular-nums; }
+.evs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.evc { text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); border-top: 5px solid var(--c, var(--teal)); display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; font-weight: 600; font-size: .88rem; }
+.evc small { color: var(--muted); font-weight: 600; font-size: .76rem; }
+.evc .txt { font-weight: 400; font-size: .86rem; animation: rise .4s ease both; }
+.evc.open { background: var(--surface); cursor: default; }
+.evc:disabled:not(.open) { opacity: .5; cursor: not-allowed; }
+.quad { display: grid; grid-template-columns: 22px repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, auto) 22px; gap: 6px; }
+.quad .yl { grid-row: 1 / 3; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-size: .72rem; color: var(--muted); font-weight: 700; }
+.quad .xl { grid-column: 2 / 4; text-align: center; font-size: .72rem; color: var(--muted); font-weight: 700; }
+.qd { min-height: 96px; border: 1.5px dashed var(--line); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
+.qd h4 { margin: 0; font-family: var(--font-display); font-size: .82rem; color: var(--c); }
+.qd.qw { --c: var(--good); } .qd.ap { --c: var(--b3); } .qd.re { --c: var(--warn); } .qd.ev { --c: var(--bad); }
+.chipi { font-size: .78rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; background: var(--surface); border: 1.5px solid var(--c); animation: pop .4s cubic-bezier(.2,.9,.3,1.4) both; opacity: 0; transform: scale(.7); }
+.chipi.ok::after { content: " \2713"; color: var(--good); } .chipi.no::after { content: " \2717"; color: var(--bad); }
+.idea { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
+.idea.done { opacity: .6; }
+.idea b { font-size: .9rem; }
+.qb { display: flex; gap: 6px; flex-wrap: wrap; }
+.qb button { padding: 4px 10px; font-size: .78rem; border-radius: 8px; background: var(--surface); color: var(--ink); border-color: var(--line); }
+.qb button.on { background: var(--c); color: #fff; border-color: var(--c); }
+.qb .qw { --c: var(--good); } .qb .ap { --c: var(--b3); } .qb .re { --c: var(--warn); } .qb .ev { --c: var(--bad); }
+.step10 { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.step10 .ctl { display: flex; gap: 8px; align-items: center; }
+.step10 .ctl button { padding: 4px 12px; border-radius: 8px; }
+.step10 .ctl b { min-width: 52px; text-align: center; font-family: var(--font-display); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.stack { display: flex; height: 30px; border-radius: 8px; overflow: hidden; gap: 2px; }
+.stack div { transition: flex-grow .5s ease; display: grid; place-items: center; font-size: .74rem; font-weight: 700; color: #fff; min-width: 0; }
+.mvps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mv { text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; font-weight: 700; font-size: .88rem; }
+.mv small { font-weight: 600; color: var(--muted); }
+.mv[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); box-shadow: 0 0 0 2px var(--accent); }
+.mv:disabled { opacity: .5; cursor: not-allowed; }
+.mrow { display: grid; grid-template-columns: 150px minmax(0, 1fr) 46px; gap: 10px; align-items: center; font-size: .88rem; }
+.mrow b { text-align: right; font-variant-numeric: tabular-nums; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.cands { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cd { text-align: left; background: var(--bg); color: var(--ink); border: 1.5px solid var(--line); border-top: 5px solid var(--teal); display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; font-weight: 700; font-size: .9rem; }
+.cd small { font-weight: 400; color: var(--muted); font-size: .84rem; } .cd em { font-style: normal; color: var(--good); font-weight: 700; font-size: .8rem; }
+.cd[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); box-shadow: 0 0 0 2px var(--accent); }
+.cd:disabled:not([aria-pressed="true"]) { opacity: .5; cursor: not-allowed; }
+.sbars .bar { grid-template-columns: 170px minmax(0, 1fr) 54px; }
+.pal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .lab2, .split, .evs, .mvps, .cands { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .team { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 30px; }
+  .hy { grid-template-columns: minmax(0, 1fr) 90px 34px; }
+  .mrow { grid-template-columns: 110px minmax(0, 1fr) 42px; }
+  .sbars .bar { grid-template-columns: 120px minmax(0, 1fr) 44px; }
+  .jp span { display: none; } .jp b { font-size: 1.05rem; }
+}
+
+.side .people { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 8px; }
+.side .av { width: 38px; height: 38px; }
+
+.rings { width: 100%; max-width: 300px; display: block; margin: 0 auto; overflow: visible; }
+.arc { transition: stroke-dashoffset 1.1s cubic-bezier(.3,.8,.3,1); }
+.orb { transform-origin: 150px 150px; animation: spin 10s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pend { stroke: var(--accent); stroke-dasharray: 4 5; animation: pend 1.4s ease-in-out infinite; }
+@keyframes pend { 50% { opacity: .25; } }
+.rings.glow { animation: glow 1.6s ease-in-out 3; }
+.rings.wobble { animation: wobble 1.1s ease-in-out 3; transform-origin: 50% 50%; }
+.rings.shake { animation: bshake .9s ease-in-out 2; }
+.arc.broken { stroke-dasharray: 10 9 !important; animation: flick 1.2s ease-in-out infinite; }
+@keyframes flick { 50% { opacity: .35; } }
+.ringsBig { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 18px; align-items: center; }
+.ringsBig .rings { max-width: 340px; }
+.rleg { display: flex; flex-direction: column; gap: 6px; }
+.rl { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: .9rem; }
+.rl i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; color: #fff; font-size: .78rem; }
+.rl b { font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) { .ringsBig { grid-template-columns: minmax(0, 1fr); } }
+
+.mot { border-radius: 12px; padding: 12px 14px; background: linear-gradient(120deg, var(--hero1), var(--hero2)); color: var(--hero-ink); font-family: var(--font-display); font-weight: 600; font-size: .98rem; line-height: 1.4; }
+.how ol { margin: 4px 0 8px; padding-left: 20px; } .how li { margin-bottom: 3px; } .how small { display: block; }
+</style>
+<style>html{color-scheme:light}body{margin:0}</style></head><body>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">Gerencia del Capital Humano · Trayecto 3 · Innovación que perdura</span>
+    <h1>Laboratorio de Innovación</h1>
+    <p><b>Propósito:</b> practicar, en un reto real de talento humano, las siete técnicas de innovación de esta sesión, para que sepas cuándo usar cada una y cómo se conectan entre sí. <b>Qué harás:</b> recorrerás siete estaciones, una por técnica, tomarás decisiones con presupuesto en millones de pesos y al final verás cómo quedó tu innovación.</p>
+    <div class="tags"><span>7 técnicas</span><span>Presupuesto en millones de pesos</span><span>Alertas y consecuencias</span><span>LEGO® Serious Play® incluido</span></div>
+  </header>
+
+  <section class="card" id="intro" aria-label="Las siete estaciones">
+    <ol class="rules" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <li><span class="n" style="background:var(--b1)">1</span><div><b>Seguridad psicológica</b>Cómo juega el equipo según tu liderazgo.</div></li>
+      <li><span class="n" style="background:var(--b2)">2</span><div><b>Design Thinking</b>Entender antes de proponer.</div></li>
+      <li><span class="n" style="background:var(--b3)">3</span><div><b>Impacto–esfuerzo</b>Decidir qué probar primero.</div></li>
+      <li><span class="n" style="background:var(--b4)">4</span><div><b>Portafolio 70/20/10</b>Repartir el riesgo.</div></li>
+      <li><span class="n" style="background:var(--b5)">5</span><div><b>Lean y Kickbox</b>Probar barato antes de escalar.</div></li>
+      <li><span class="n" style="background:var(--teal)">6</span><div><b>LEGO® Serious Play®</b>Construir el modelo con las manos.</div></li>
+      <li><span class="n" style="background:var(--good)">7</span><div><b>Cuatro candados</b>Que perdure: comité e imprevisto.</div></li>
+    </ol>
+    <p class="tiny muted">Los valores están en millones de pesos colombianos (M = millones COP). Las técnicas son las de la presentación de hoy.</p>
+  </section>
+
+  <section class="card" id="pick">
+    <h2>Elige tu reto</h2>
+    <p class="muted tiny">Instrucciones: elige uno de los cuatro retos haciendo clic en su tarjeta. Con ese reto trabajarás en las siete estaciones, de la 1 a la 7, y cada decisión que tomes cuesta dinero del mismo presupuesto.</p>
+    <div class="chs" id="chs"></div>
+  </section>
+
+  <div id="lab" hidden class="col">
+    <ol class="journey" id="journey"></ol>
+    <div class="lab2">
+      <aside class="card side" aria-label="Tablero de control">
+        <div class="kpi" id="kB"><div class="lab"><span>Presupuesto disponible</span></div><div class="val"><span id="bVal"></span></div><small class="muted" id="bOf"></small><div class="track"><div class="fill" id="bFill"></div></div></div>
+        <div><p class="sub" style="margin-bottom:6px">Tu mapa de innovación</p><div id="rings"></div></div><div><p class="sub" style="margin-bottom:8px">Tu camino</p><ul class="path" id="path"></ul></div>
+        <div id="peopleBox" hidden><p class="sub" style="margin-bottom:8px">Comité de decisión</p><div class="people" id="people"></div></div>
+      </aside>
+      <section class="card" id="panel" aria-live="polite"><div id="st" class="col"></div></section>
+    </div>
+  </div>
+
+  <footer>Ejercicio didáctico · Técnicas de la presentación: Proyecto Aristóteles de Google y Edmondson (1999), Design Thinking (Brown, 2008), matriz de impacto–esfuerzo, portafolio 70/20/10 (Nagji y Tuff, 2012), Lean Startup (Ries, 2011), Adobe Kickbox, LEGO® Serious Play® y gestión del cambio (García Rubiano, 2011). LEGO® y Serious Play® son marcas registradas de LEGO Group, sin relación con este ejercicio.</footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function mny(n) { return "$" + n.toLocaleString("es-CO") + " M"; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  /* Áreas del comité: 0 Finanzas, 1 Operaciones, 2 Personas, 3 Legal y datos, 4 Dirección */
+  var SK = [
+    { n: "Finanzas", a: "F", who: "Camila, directora financiera", q: "¿Cuánto cuesta no hacerlo y en cuánto tiempo se recupera la inversión?",
+      v: { fav: "Los números cierran y el gasto está bien acotado.", cond: "Me convence si la próxima fase tiene un tope de gasto claro.", contra: "No veo cómo se justifica esta inversión." } },
+    { n: "Operaciones", a: "O", who: "Andrés, director de operaciones", q: "¿Qué dejan de hacer mis equipos para participar y cuándo?",
+      v: { fav: "Puedo liberar al equipo sin frenar la operación.", cond: "Lo apoyo si el piloto no cae en temporada alta.", contra: "Mis equipos no tienen tiempo para esto. Así no." } },
+    { n: "Personas", a: "P", who: "Lucía, representante de los empleados", q: "¿Quién ve mis datos y qué gano yo con esto?",
+      v: { fav: "Nos escucharon y se nota. Cuenten con nosotros.", cond: "Apoyo si se mantiene el diálogo y se explica cada dato que se use.", contra: "Se decidió sin nosotros y no confiamos." } },
+    { n: "Legal y datos", a: "L", who: "Mateo, jefe de cumplimiento", q: "¿Qué datos personales usa y con qué base legal y consentimiento?",
+      v: { fav: "El riesgo está controlado y hay trazabilidad.", cond: "Falta formalizar el uso de datos antes de escalar.", contra: "Hay demasiados cabos sueltos: riesgo legal y reputacional." } },
+    { n: "Dirección", a: "D", who: "Valentina, directora general", q: "¿Cómo se conecta con la estrategia y quién responde por el resultado?",
+      v: { fav: "Esto mueve la aguja de la estrategia. Adelante.", cond: "Quiero ver un responsable y una meta antes del segundo trimestre.", contra: "No veo el vínculo con la estrategia." } }
+  ];
+    var TECH = [
+    { k: "Sin tecnología (manual)", cost: 0, care: "Es lo más barato, pero no escala." },
+    { k: "IA generativa y copiloto", cost: 30, care: "Cuida sesgos y datos." },
+    { k: "People analytics", cost: 25, care: "Cuida la privacidad." },
+    { k: "RPA y no-code", cost: 20, care: "Cuida el mantenimiento." }
+  ];
+  var GOOD = ["Admito mis propios errores primero", "Pregunto qué opina el equipo antes de dar mi idea", "Agradezco a quien trae una mala noticia"];
+  var BAD = ["Critico las ideas en público para ser claro", "Solo celebro los éxitos", "Toda idea pasa primero por mi aprobación"];
+  var QD = { qw: "Quick win", ap: "Apuesta grande", re: "Relleno", ev: "Evitar" };
+  var CANDS = [
+    { n: "Un sponsor visible", d: "Alguien con poder que lo use y lo defienda.", cost: 15, f: [0, 0, 0.05, 0.12, 0] },
+    { n: "Métricas desde el día 1", d: "Uso, impacto y percepción, no solo entregables.", cost: 20, f: [0.05, 0, 0, 0.1, 0] },
+    { n: "Presupuesto y tiempo protegidos", d: "Sin recursos, el piloto muere al escalar.", cost: 30, f: [0, 0.15, 0, 0.05, 0] },
+    { n: "Un ritual que lo repite", d: "Demo day trimestral y revisión de aprendizajes.", cost: 15, f: [0, 0, 0.08, 0.08, 0] }
+  ];
+  /* Evidencias: [nombre, tipo, costo M, semanas, hallazgo, apoyo a cada hipótesis 0..3] */
+  var CH = [
+    { n: "Los tripulantes nuevos se van", d: "Aerolínea regional: la rotación del primer año preocupa.", ctx: "Una aerolínea regional pierde tripulantes en su primer año. Los turnos son rígidos y las rutas, largas.", key: 2, keyT: 0, real: 1,
+      hyp: ["Los salarios están por debajo del mercado", "Nadie acompaña a los nuevos en sus primeros meses", "Los turnos y las rutas largas son demasiado rígidos"],
+      hq: ["¿Cómo podríamos igualar el salario del mercado?", "¿Cómo podríamos acompañar a cada persona nueva en sus primeros meses?", "¿Cómo podríamos flexibilizar turnos y rutas?"],
+      ev: [["Entrevistas a quienes se fueron (10)", "Entrevista", 20, 2, "8 de 10 dicen: «nadie me guió en los primeros meses». Solo 2 mencionan el sueldo.", [0, 3, 0]],
+           ["Entrevistas a quienes se quedaron (10)", "Entrevista", 20, 2, "Quienes se quedaron tuvieron un tripulante veterano que los acompañó desde el inicio.", [0, 3, 0]],
+           ["Datos de salida (people analytics)", "Datos", 15, 1, "La rotación se concentra entre los meses 3 y 9. El sueldo es igual al de quienes sí se quedan.", [0, 2, 1]],
+           ["Opinión del director de operaciones", "Opinión", 0, 1, "«Seguro es el sueldo: la competencia paga más.»", [3, 0, 1]],
+           ["Comparativo salarial del sector", "Datos", 10, 1, "Estamos a un 3 % del mercado. No es un diferencial.", [0, 1, 0]],
+           ["Observación en turnos (shadowing)", "Observación", 25, 2, "Los veteranos toleran los turnos rígidos. Los nuevos los sufren sin nadie de referencia.", [0, 2, 1]]],
+      ideas: [["Mentoría entre pares con tripulantes veteranos", "qw", "Núcleo", 0, "Barata, ataca la causa y se puede probar en una base."],
+              ["Plataforma de carrera personalizada con IA", "ap", "Adyacente", 1, "Alto impacto, pero exige datos, integración y tiempo."],
+              ["Rediseñar todos los turnos con optimización por IA", "ev", "Núcleo", 1, "Mucho esfuerzo y no ataca la causa encontrada."],
+              ["Boletín de bienvenida mensual", "re", "Núcleo", 0, "Fácil, pero casi no mueve la rotación."],
+              ["Organización por habilidades con analítica predictiva", "ap", "Transformacional", 2, "Apuesta de largo plazo: cambia cómo se asigna el talento."],
+              ["Encuesta de pulso mensual a los nuevos", "re", "Núcleo", 2, "Útil para medir, pero por sí sola no retiene a nadie."]] },
+    { n: "La IA llegó y nadie la usa", d: "Banco: compró herramientas y la adopción es baja.", ctx: "Una empresa financiera licenció una IA generativa. A los tres meses, casi nadie la usa y varios tienen miedo.", key: 3, keyT: 3, real: 1,
+      hyp: ["La herramienta es muy difícil de usar", "Hay miedo a ser reemplazados y dudas sobre el uso de sus datos", "No hay licencias suficientes para todos"],
+      hq: ["¿Cómo podríamos simplificar la herramienta?", "¿Cómo podríamos dar tranquilidad y reglas claras sobre empleo y datos?", "¿Cómo podríamos comprar más licencias?"],
+      ev: [["Entrevistas a quienes no la usan (10)", "Entrevista", 20, 2, "7 de 10 dicen: «si la uso, ¿me reemplazan?» o «¿quién ve lo que escribo?».", [0, 3, 0]],
+           ["Entrevistas a quienes sí la usan (10)", "Entrevista", 20, 2, "La usan porque su jefe les dio permiso explícito y reglas claras.", [0, 3, 0]],
+           ["Datos de uso (people analytics)", "Datos", 15, 1, "El uso es parejo entre áreas. La capacitación técnica no lo cambió.", [0, 2, 0]],
+           ["Opinión del director de TI", "Opinión", 0, 1, "«Es falta de capacitación técnica. Hagamos manuales.»", [3, 0, 0]],
+           ["Inventario de licencias", "Datos", 10, 1, "Sobran licencias: el acceso no es el problema.", [0, 1, 0]],
+           ["Observación de sesiones de trabajo", "Observación", 25, 2, "La usan con soltura, pero la cierran cuando pasa el jefe.", [1, 3, 0]]],
+      ideas: [["Reglas claras de uso de IA y datos, con voceros por equipo", "qw", "Núcleo", 0, "Barata y ataca el miedo y la duda sobre datos."],
+              ["Copiloto de IA integrado a cada rol, con rediseño de procesos", "ap", "Adyacente", 1, "Alto impacto, pero exige tiempo y cambio de procesos."],
+              ["Comprar una segunda herramienta de IA para todos", "ev", "Núcleo", 1, "Mucho esfuerzo y no ataca la causa."],
+              ["Boletín semanal de tips de IA", "re", "Núcleo", 1, "Fácil, pero el miedo no se resuelve con tips."],
+              ["Escuela de IA y analítica para toda la plantilla", "ap", "Transformacional", 2, "Apuesta de largo plazo que cambia las capacidades."],
+              ["Comunidad de champions de IA", "qw", "Adyacente", 1, "Barata y genera confianza entre pares."]] },
+    { n: "El onboarding de 90 días", d: "Retail: demoran meses en ser productivos.", ctx: "Una cadena de tiendas contrata mucho y rápido, y los nuevos tardan tres meses en rendir.", key: 1, keyT: 0, real: 1,
+      hyp: ["Contratamos perfiles equivocados", "Aprenden mirando, sin práctica guiada ni mentor", "El sistema de ventas es demasiado complejo"],
+      hq: ["¿Cómo podríamos contratar mejores perfiles?", "¿Cómo podríamos guiar la práctica de cada persona nueva desde el primer día?", "¿Cómo podríamos simplificar el sistema de ventas?"],
+      ev: [["Entrevistas a quienes llevan 3 meses (10)", "Entrevista", 20, 2, "«Me dijeron que mirara a mis compañeros.» 8 de 10 no tuvieron práctica guiada.", [0, 3, 0]],
+           ["Entrevistas a encargados de tienda (6)", "Entrevista", 20, 2, "Los encargados no tienen tiempo para guiar. Los nuevos aprenden a los tropiezos.", [0, 3, 1]],
+           ["Datos de desempeño por cohorte", "Datos", 15, 1, "Los perfiles son similares a los de hace un año. La curva mejora con quien tuvo mentor.", [0, 2, 0]],
+           ["Opinión del gerente de selección", "Opinión", 0, 1, "«Nos están llegando malos candidatos.»", [3, 0, 0]],
+           ["Prueba del sistema de ventas con 5 nuevos", "Observación", 25, 2, "El sistema tiene una curva de uso aceptable. No es el cuello de botella.", [0, 1, 1]],
+           ["Comparativo de perfiles contratados", "Datos", 10, 1, "Perfiles equivalentes a los de las tiendas con mejor desempeño.", [-1, 1, 0]]],
+      ideas: [["Mentor por tienda y práctica guiada durante 30 días", "qw", "Núcleo", 0, "Barata y ataca la causa encontrada."],
+              ["Academia digital con simulaciones de venta y IA", "ap", "Adyacente", 1, "Alto impacto, pero exige contenidos y tecnología."],
+              ["Rediseñar por completo el sistema de ventas", "ev", "Núcleo", 3, "Mucho esfuerzo y no era el cuello de botella."],
+              ["Concurso de bienvenida", "re", "Núcleo", 0, "Anima, pero no enseña a vender."],
+              ["Ruta de habilidades personalizada con analítica predictiva", "ap", "Transformacional", 2, "Apuesta grande: cambia la formación."],
+              ["Lista de verificación de la primera semana", "qw", "Núcleo", 0, "Muy barata y ordena el inicio."]] },
+    { n: "Inclusión que no llega a la cima", d: "Manufactura: la diversidad se queda en la base.", ctx: "Una planta industrial tiene una plantilla diversa, pero los cargos de decisión no lo reflejan.", key: 4, keyT: 3, real: 1,
+      hyp: ["Faltan personas calificadas para esos cargos", "Los criterios de promoción y los sesgos dejan fuera a personas diversas", "Los cargos directivos tienen horarios incompatibles con muchas personas"],
+      hq: ["¿Cómo podríamos encontrar personas más calificadas?", "¿Cómo podríamos hacer que los criterios de promoción sean claros y justos?", "¿Cómo podríamos flexibilizar los horarios de los cargos directivos?"],
+      ev: [["Entrevistas a personas que no fueron promovidas (10)", "Entrevista", 20, 2, "8 de 10 dicen: «nadie me propuso para el cargo» o «los criterios cambian según quién decide».", [0, 3, 0]],
+           ["Entrevistas a personas que sí fueron promovidas (10)", "Entrevista", 20, 2, "Casi todas tuvieron a alguien que las recomendó. El proceso formal pesó poco.", [0, 3, 0]],
+           ["Datos de promociones por perfil", "Datos", 15, 1, "Con igual desempeño, la probabilidad de ascender es menor para parte de la plantilla.", [0, 2, 0]],
+           ["Opinión del gerente de planta", "Opinión", 0, 1, "«No hay suficientes personas preparadas para esos cargos.»", [3, 0, 0]],
+           ["Inventario de formación y títulos", "Datos", 10, 1, "Hay mucha gente con la formación exigida que nunca postuló.", [-1, 1, 0]],
+           ["Observación de comités de promoción", "Observación", 25, 2, "Los criterios se improvisan y se prefieren perfiles conocidos. Los horarios casi no se discuten.", [0, 3, 1]]],
+      ideas: [["Criterios de promoción claros y paneles diversos", "qw", "Núcleo", 0, "Barata y ataca la causa encontrada."],
+              ["Plataforma de talento con IA para detectar potencial", "ap", "Adyacente", 1, "Alto impacto, pero con riesgo de sesgos si no se audita."],
+              ["Contratar una consultora para rediseñar todos los cargos", "ev", "Núcleo", 0, "Mucho esfuerzo y no ataca la causa."],
+              ["Semana de la diversidad", "re", "Núcleo", 0, "Visibiliza, pero no cambia quién asciende."],
+              ["Organización por habilidades con analítica de talento", "ap", "Transformacional", 2, "Apuesta grande: cambia cómo se asigna y se promueve."],
+              ["Programa de sponsors: cada directivo patrocina a una persona", "qw", "Adyacente", 0, "Barato y genera oportunidades concretas."]] }
+  ];
+  var STN = [
+    { k: "Seguridad psicológica", s: "Seguridad", src: "Google, Proyecto Aristóteles · Edmondson (1999)", role: "Arquitecto de cultura", max: 10 },
+    { k: "Design Thinking", s: "Design Thinking", src: "Brown (2008)", role: "Diseñador de capacidades", max: 15 },
+    { k: "Matriz impacto–esfuerzo", s: "Impacto–esfuerzo", src: "Herramienta de priorización", role: "Gestor de portafolio de talento", max: 15 },
+    { k: "Portafolio 70/20/10", s: "70/20/10", src: "Nagji y Tuff (2012)", role: "Gestor de portafolio de talento", max: 10 },
+    { k: "Lean Startup y Kickbox", s: "Lean y Kickbox", src: "Ries (2011) · Adobe Kickbox", role: "Habilitador de tiempo y recursos", max: 15 },
+    { k: "LEGO® Serious Play®", s: "LEGO® Serious Play®", src: "LEGO Group", role: "Guardián de ética e inclusión", max: 20 },
+    { k: "Cuatro candados y comité", s: "Candados", src: "García Rubiano (2011) · recurso del trayecto", role: "Medidor de impacto", max: 15 }
+  ];
+  var STX = [
+    { m: "Las mejores ideas de tu equipo solo aparecen si se sienten seguras para decirlas. Tu liderazgo decide cuántas llegan.",
+      w: "La seguridad psicológica es la creencia compartida de que en el equipo se puede preguntar, proponer y equivocarse sin ser castigado ni ridiculizado. En el Proyecto Aristóteles, Google encontró que era el factor que más pesaba en los equipos de mejor desempeño.",
+      s: ["Lee las seis conductas.", "Elige exactamente 3: las que tendrías como líder esta semana.", "Pulsa «Aplicar y ver al equipo».", "Mira cuántas personas se atreven a proponer una idea: ese número define cuántas ideas tendrás en la estación 3."] },
+    { m: "Antes de inventar soluciones, entiende de verdad a las personas. Un problema bien definido ahorra meses y mucho dinero.",
+      w: "El Design Thinking empieza por empatizar con las personas (entrevistas, datos, observación) y definir una pregunta clara: «¿Cómo podríamos…?». La opinión de un jefe no es evidencia.",
+      s: ["Lee el reto.", "Abre las fuentes de investigación que quieras. Cada una cuesta dinero y semanas: tienes 4 semanas en total.", "Mira cómo cambian las barras: muestran qué explicación apoya la evidencia.", "Cuando tengas suficiente, elige la pregunta «¿Cómo podríamos…?» que define el problema."] },
+    { m: "Con pocos recursos no puedes probarlo todo. Esta matriz te ayuda a elegir qué probar primero y qué descartar.",
+      w: "La matriz de impacto–esfuerzo ubica cada idea según el impacto que tendría y el esfuerzo que exige: quick wins (empezar aquí), apuestas grandes (planificar), rellenos (si sobra tiempo) y evitar.",
+      s: ["Lee cada idea de la lista.", "En cada una pulsa el cuadrante donde crees que va: Quick win, Apuesta grande, Relleno o Evitar.", "Cuando todas estén ubicadas, pulsa «Revelar y comparar».", "Elige la idea que vas a probar en la estación 5."] },
+    { m: "Innovar no es apostarlo todo a una idea. Un portafolio equilibrado protege el presente y prepara el futuro.",
+      w: "Nagji y Tuff (2012) proponen repartir el esfuerzo de innovación en 70 % núcleo (mejorar lo que ya haces), 20 % adyacente (expandir a algo cercano) y 10 % transformacional (crear algo realmente nuevo).",
+      s: ["Usa los botones − y + para repartir tu esfuerzo entre núcleo, adyacente y transformacional.", "El total debe ser exactamente 100 %: al llegar a 100 no puedes sumar más, primero quita de otro lado.", "Observa cómo cambian el riesgo y el retorno.", "Pulsa «Confirmar el reparto»."] },
+    { m: "Probar barato te evita equivocarte caro. Aprender rápido vale más que construir todo de una vez.",
+      w: "Lean Startup propone probar una versión mínima (MVP) y aprender antes de invertir. En Adobe, el Kickbox da un presupuesto mínimo y un experimento por nivel, sin pedir permiso. Al final se decide: seguir, pivotar o parar.",
+      s: ["Elige el tamaño del experimento: cuanto más grande, más caro y lento, pero más fiable.", "Elige la tecnología que apoyará la prueba y, si usas datos de personas, el consentimiento.", "Pulsa «Correr el experimento» y lee los resultados.", "Decide: seguir y escalar, pivotar o parar."] },
+    { m: "Cuando construyes con las manos aparece lo que un informe esconde. Aquí tu torre habla por ti.",
+      w: "En LEGO® Serious Play® se plantea una pregunta, cada persona construye su modelo con ladrillos, lo cuenta a los demás y el grupo reflexiona. El modelo es una metáfora.",
+      s: ["Elige una pieza de la caja y mueve el cursor sobre el tablero (o usa ◀ ▶).", "Pulsa en el tablero o en «Soltar pieza» para colocarla. Las de abajo sostienen a las de arriba.", "Cubre los cinco colores: personas, tecnología, procesos, cultura y datos. Vigila el presupuesto, el tiempo y las piezas marcadas con «!».", "Pulsa «Presentar mi torre», cuenta tu historia y termina la construcción."] },
+    { m: "Muchas ideas buenas mueren al escalar. Los candados hacen que tu innovación perdure.",
+      w: "Una innovación perdura cuando tiene un sponsor visible, métricas desde el día 1, presupuesto y tiempo protegidos, y un ritual que la repite. Aquí, además, el comité evalúa tu iniciativa y llega un imprevisto.",
+      s: ["Elige los candados que cerrarás con el dinero que queda.", "Pulsa «Presentar al comité» y lee los votos de las cinco áreas.", "Pulsa «Llega el imprevisto» y mira si tu iniciativa resiste.", "Revisa tu mapa de anillos y tu plan de 30, 60 y 90 días, y copia el resumen."] }
+  ];
+  var G = null, timer = null;
+  var COLS = 12, ROWS = 10, CELL = 38, X0 = 12, YB = 412;
+  var TY = [
+    { k: "Personas", s: "P", c: "var(--kP)", cps: 12, need: 7 },
+    { k: "Tecnología", s: "T", c: "var(--kT)", cps: 18, need: 5 },
+    { k: "Procesos", s: "Pr", c: "var(--kR)", cps: 10, need: 5 },
+    { k: "Cultura", s: "C", c: "var(--kC)", cps: 8, need: 4 },
+    { k: "Datos y medición", s: "D", c: "var(--kD)", cps: 9, need: 4 }
+  ];
+  var PC = [
+    [0, "Líder patrocinador", 2, 1], [0, "Equipo de talento", 3, 1], [0, "Academia de habilidades", 4, 1],
+    [1, "Piloto con IA", 2, 1], [1, "Plataforma de personas", 3, 1], [1, "Automatización RPA", 2, 2],
+    [2, "Rutina de mejora", 2, 1], [2, "Gobierno ágil", 3, 1], [2, "Flujo de punta a punta", 4, 1],
+    [3, "Mensajes del líder", 2, 1], [3, "Comunidad de práctica", 3, 1], [3, "Hábitos y reconocimiento", 2, 2],
+    [4, "Tablero de indicadores", 2, 1], [4, "Analítica de personas", 3, 1], [4, "Ética y auditoría de datos", 4, 1]
+  ].map(function (p) { return { t: p[0], n: p[1], w: p[2], h: p[3], cost: p[2] * p[3] * TY[p[0]].cps }; });
+  var EVENTS = [
+    { n: "Recorte de presupuesto", d: "Finanzas recorta un 30 % de los recursos del proyecto.", what: "viabilidad y sostenibilidad", m: function (c) { return (c.nv[1] + c.nv[3]) / 2; } },
+    { n: "Los mánagers resisten", d: "Varios mánagers dicen que no tienen tiempo para el cambio.", what: "aceptación", m: function (c) { return c.nv[2]; } },
+    { n: "Cambia el patrocinador", d: "La persona que patrocinaba la iniciativa sale de la empresa.", what: "sostenibilidad", m: function (c) { return c.nv[3]; } },
+    { n: "Falla tecnológica", d: "La herramienta se cae durante la semana de lanzamiento.", what: "tecnología y viabilidad", m: function (c) { return c.nv[4] * 0.5 + c.nv[1] * 0.5; } },
+    { n: "Cambio normativo sobre datos de empleados", d: "Una nueva norma endurece el uso de datos personales.", what: "viabilidad y estabilidad de la estructura", m: function (c) { return c.nv[1] * 0.6 + c.stab * 0.4; } }
+  ];
+  var TEAM = ["Analista", "Líder", "Diseño", "Datos", "Operación", "Jurídico"];
+  var LC = { ok: "var(--good)", warn: "var(--warn)", bad: "var(--bad)" };
+  function lvl(r) { return r < 0.15 ? "bad" : (r < 0.3 ? "warn" : "ok"); }
+  function count(el, from, to, fmt, ms) {
+    if (RM || from === to) { el.textContent = fmt(to); return; }
+    var t0 = null;
+    function step(t) { if (t0 === null) t0 = t; var k = Math.min(1, (t - t0) / ms); el.textContent = fmt(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function towerSp() { return G && G.tw ? G.tw.bricks.reduce(function (a, b) { return a + b.cost; }, 0) : 0; }
+  function rem() { return G.B - G.expSp - towerSp() - G.candSp; }
+  function pc(x) { return String(x).replace(".", ","); }
+
+  /* ---------- tablero lateral ---------- */
+  function hudB() {
+    var r = rem(), rb = r / G.B;
+    count($("bVal"), G.shB, r, mny, 500); G.shB = r;
+    $("bOf").textContent = "de " + mny(G.B) + " · usado " + mny(G.B - r);
+    $("bFill").style.width = Math.round(rb * 100) + "%"; $("bFill").style.backgroundColor = LC[lvl(rb)];
+    $("kB").className = "kpi" + (lvl(rb) === "ok" ? "" : " alert-" + lvl(rb));
+  }
+  function ringsSVG(big, ev) {
+    var cx = 150, r0 = 44, st = 15, sw = 11, s = '<svg viewBox="0 0 300 300" class="rings' + (ev ? " " + ev : "") + '" role="img" aria-label="Mapa de anillos: un anillo por técnica, el color indica qué tan bien te fue">';
+    var total = G.done.reduce(function (a, b) { return a + (b || 0); }, 0);
+    s += '<circle cx="150" cy="150" r="' + (r0 - 16) + '" fill="var(--soft)"/>';
+    STN.forEach(function (x, i) {
+      var r = r0 + i * st, C = 2 * Math.PI * r, d = G.done[i], p = d === undefined ? 0 : d / x.max, col = p >= 0.6 ? "var(--good)" : (p >= 0.4 ? "var(--warn)" : "var(--bad)");
+      var broken = ev === "shake" && i === 6;
+      s += '<circle cx="150" cy="150" r="' + r + '" fill="none" stroke="var(--line)" stroke-width="' + sw + '" opacity=".7"' + (i === G.stn && d === undefined ? ' class="pend"' : "") + '/>';
+      if (d !== undefined) {
+        var isNew = !G.ringSeen[i]; G.ringSeen[i] = true;
+        p = Math.max(p, 0.03); s += '<circle class="arc' + (broken ? " broken" : "") + '" cx="150" cy="150" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '" stroke-linecap="round" stroke-dasharray="' + (C * p).toFixed(1) + " " + C.toFixed(1) + '" transform="rotate(-90 150 150)"' + (isNew ? ' data-new="1" style="stroke-dashoffset:' + (C * p).toFixed(1) + '"' : "") + '/>';
+        s += '<g class="orb" style="animation-duration:' + (7 + i * 2.5) + 's"><circle cx="150" cy="' + (150 - r) + '" r="3.2" fill="#fff" stroke="' + col + '" stroke-width="1.5"/></g>';
+      }
+      s += '<circle cx="150" cy="' + (150 - r) + '" r="6" fill="var(--surface)" stroke="var(--line)"/><text x="150" y="' + (150 - r + 2.6) + '" text-anchor="middle" font-size="7.5" font-weight="700" style="fill:var(--ink)">' + (i + 1) + '</text>';
+    });
+    s += '<text x="150" y="146" text-anchor="middle" font-size="9" style="fill:var(--muted);font-family:Nunito Sans,sans-serif">puntos</text><text x="150" y="165" text-anchor="middle" font-size="19" font-weight="700" style="fill:var(--ink);font-family:Sora,sans-serif">' + total + '</text>';
+    return s + "</svg>";
+  }
+  function drawRings() {
+    var key = G.done.join(",") + "|" + G.stn;
+    if (G.ringKey === key) return; G.ringKey = key;
+    $("rings").innerHTML = ringsSVG(false);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { Array.prototype.forEach.call(document.querySelectorAll("#rings .arc[data-new]"), function (a) { a.style.strokeDashoffset = "0"; a.removeAttribute("data-new"); }); }); });
+  }
+  function journey() {
+    var h = "";
+    STN.forEach(function (s, i) { var c = G.done[i] !== undefined ? "jp ok" : (i === G.stn ? "jp cur" : "jp"); h += '<li class="' + c + '"><b>' + (G.done[i] !== undefined ? "✓" : (i + 1)) + '</b><span>' + s.s + '</span></li>'; });
+    $("journey").innerHTML = h;
+    var p = "";
+    STN.forEach(function (s, i) { var d = G.done[i] !== undefined; p += '<li class="' + (d ? "ok" : (i === G.stn ? "cur" : "")) + '"><i>' + (d ? "✓" : (i + 1)) + '</i><span>' + s.k + '</span>' + (d ? '<em>' + G.done[i] + "/" + s.max + '</em>' : "<em></em>") + '</li>'; });
+    $("path").innerHTML = p; drawRings();
+  }
+  function people(votes) {
+    var h = "", key = CH[G.ch].key;
+    SK.forEach(function (s, i) { var cls = "av" + (votes ? " " + votes[i].st : (key === i ? " key" : "")); h += '<div class="pp"><div class="' + cls + '">' + s.a + '</div><span>' + s.n + '</span></div>'; });
+    $("people").innerHTML = h; $("peopleBox").hidden = false;
+  }
+
+  /* ---------- plantillas comunes ---------- */
+  function head(i, title, extra) {
+    var s = STN[i], x = STX[i];
+    return '<div class="shead"><span class="tag">Estación ' + (i + 1) + ' de 7 · ' + s.k + '</span><h2>' + title + '</h2><span class="role">Tu rol: ' + s.role + '</span></div><div class="mot">' + x.m + '</div><div class="how"><b>¿Qué es?</b>' + x.w + (extra ? '<p class="tiny" style="margin-top:6px">' + extra + '</p>' : "") + '<b style="margin-top:10px">Qué hacer</b><ol>' + x.s.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ol><small class="muted">Fuente: ' + s.src + '</small></div>';
+  }
+  function lessonBox(cls, title, text) { return '<div class="event ' + cls + '"><span class="who">Lo que acabas de ver</span><h3>' + title + '</h3><p>' + text + '</p></div>'; }
+  function finishStn(i, pts, cls, title, text) {
+    G.done[i] = pts; journey(); hudB();
+    var last = i === 6;
+    $("out").innerHTML = lessonBox(cls, title + " · " + pts + " de " + STN[i].max + " puntos", text) + (i < 5 ? '<button id="cont" type="button" style="align-self:flex-start;margin-top:12px">Continuar a la estación ' + (i + 2) + '</button>' : "");
+    var c = $("cont"); if (c) c.onclick = function () { G.stn = i + 1; station(); };
+    $("out").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+  }
+  function station() {
+    journey(); hudB(); $("peopleBox").hidden = true;
+    [r1, r2, r3, r4, r5, r6, r7][G.stn]();
+    $("panel").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+  }
+
+  /* ---------- 1. Seguridad psicológica ---------- */
+  function r1() {
+    var items = shuffle(GOOD.map(function (t) { return { t: t, g: 1 }; }).concat(BAD.map(function (t) { return { t: t, g: 0 }; }))), sel = {};
+    $("st").innerHTML = head(0, "Tu equipo mira cómo lideras", "") +
+      '<p class="ask">Elige exactamente 3 conductas que tendrás como líder esta semana:</p><div class="opts" id="o1"></div><button id="go1" type="button" style="align-self:flex-start" disabled>Aplicar y ver al equipo</button>' +
+      '<div class="team" id="team"></div><div id="out"></div>';
+    function draw() {
+      var n = Object.keys(sel).length, h = "";
+      items.forEach(function (it, i) { var on = !!sel[i]; h += '<button type="button" class="tog" data-i="' + i + '" aria-pressed="' + on + '"' + (!on && n >= 3 ? " disabled" : "") + '><span class="bx">' + (on ? "✓" : "") + '</span><span>' + it.t + '</span></button>'; });
+      $("o1").innerHTML = h; $("go1").disabled = n !== 3;
+      Array.prototype.forEach.call($("o1").children, function (b) { b.onclick = function () { var i = +b.getAttribute("data-i"); if (sel[i]) delete sel[i]; else sel[i] = 1; draw(); }; });
+    }
+    draw();
+    var t = ""; TEAM.forEach(function (n, i) { t += '<div class="tm quiet" id="tm' + i + '"><span class="bub" id="bub' + i + '">Idea</span><div class="av">' + n.slice(0, 1) + '</div><span>' + n + '</span></div>'; });
+    $("team").innerHTML = t;
+    $("go1").onclick = function () {
+      var g = 0; Object.keys(sel).forEach(function (i) { g += items[i].g; });
+      G.climate = g; G.behav = Object.keys(sel).map(function (i) { return items[i].t; });
+      Array.prototype.forEach.call($("o1").children, function (b) { b.disabled = true; }); $("go1").disabled = true;
+      var dare = [1, 3, 5, 6][g];
+      for (var i = 0; i < 6; i++) (function (i) { setTimeout(function () { var m = $("tm" + i); if (!m) return; if (i < dare) { m.className = "tm"; $("bub" + i).className = "bub on"; } }, RM ? 0 : 250 + i * 220); })(i);
+      var n = 3 + g, txt = g === 3 ? "Tu equipo se atreve a proponer. Tendrás " + n + " ideas para trabajar en la estación 3." : (g === 0 ? "Casi nadie se atreve a hablar. Solo tendrás " + n + " ideas y las mejores se quedaron sin decir." : "Parte del equipo se anima y parte se calla. Tendrás " + n + " ideas para la estación 3.");
+      setTimeout(function () { finishStn(0, Math.round(g / 3 * 10), g === 3 ? "ok" : (g >= 1 ? "warn" : "bad"), g + " de 3 conductas ayudan a la seguridad psicológica", txt + " Es lo que muestra Aristóteles: el talento no alcanza si las personas no se sienten seguras para arriesgarse."); }, RM ? 0 : 1700);
+    };
+  }
+
+  /* ---------- 2. Design Thinking ---------- */
+  var WKCAP = 4;
+  function r2() {
+    var ch = CH[G.ch]; G.opened = []; G.wk = 0; G.sup = [0, 0, 0];
+    var eh = "";
+    ch.ev.forEach(function (e, i) { eh += '<button type="button" class="evc" data-i="' + i + '" style="--c:' + (e[1] === "Opinión" ? "var(--warn)" : "var(--teal)") + '"><span>' + e[0] + '</span><small>' + e[1] + " · " + mny(e[2]) + " · " + e[3] + (e[3] === 1 ? " semana" : " semanas") + '</small><span class="txt" hidden></span></button>'; });
+    $("st").innerHTML = head(1, "Entender antes de proponer", "") +
+      '<div class="dossier"><span class="st">Reto</span><h3>' + ch.n + '</h3><p class="tiny muted">' + ch.ctx + '</p></div>' +
+      '<p class="ask">Investiga: abre las fuentes que quieras. Tienes ' + WKCAP + ' semanas y cada fuente cuesta dinero.</p><div class="hyp" id="hyp"></div><p class="tiny muted" id="wk"></p><div class="evs" id="evs">' + eh + '</div>' +
+      '<p class="ask" id="ask2">Cuando tengas suficiente, define el problema: ¿Cómo podríamos…?</p><div class="opts" id="hq"></div><div id="out"></div>';
+    function bars() {
+      var h = ""; ch.hyp.forEach(function (t, i) { var w = Math.min(100, Math.round(G.sup[i] / 9 * 100)); h += '<div class="hy"><span>' + t + '</span><div class="track"><div class="fill" style="width:' + w + '%;background-color:' + ["var(--b1)", "var(--b2)", "var(--b3)", "var(--b4)"][i] + '"></div></div><b>' + G.sup[i] + '</b></div>'; });
+      $("hyp").innerHTML = '<p class="sub">Qué tanto apoya la evidencia cada explicación</p>' + h;
+      $("wk").textContent = "Semanas usadas: " + G.wk + " de " + WKCAP + " · Fuentes abiertas: " + G.opened.length;
+      Array.prototype.forEach.call($("evs").children, function (b) {
+        var i = +b.getAttribute("data-i"), e = ch.ev[i], op = G.opened.indexOf(i) >= 0;
+        b.disabled = !op && (e[2] > rem() || G.wk + e[3] > WKCAP || !!G.locked2); if (op) b.className = "evc open";
+      });
+      var hq = $("hq"); Array.prototype.forEach.call(hq.children, function (b) { b.disabled = !G.opened.length || !!G.locked2; });
+      hudB();
+    }
+    var hqh = ""; ch.hq.forEach(function (t, i) { hqh += '<button type="button" class="tog" data-i="' + i + '"><span class="bx"></span><span>' + t + '</span></button>'; });
+    $("hq").innerHTML = hqh; G.locked2 = false;
+    Array.prototype.forEach.call($("evs").children, function (b) {
+      b.onclick = function () {
+        var i = +b.getAttribute("data-i"), e = ch.ev[i]; if (G.opened.indexOf(i) >= 0 || G.locked2) return;
+        G.opened.push(i); G.expSp += e[2]; G.wk += e[3]; e[5].forEach(function (v, k) { G.sup[k] += v; });
+        var t = b.querySelector(".txt"); t.textContent = e[4]; t.hidden = false; bars();
+      };
+    });
+    Array.prototype.forEach.call($("hq").children, function (b) {
+      b.onclick = function () {
+        var i = +b.getAttribute("data-i"); G.locked2 = true; G.cause = i; G.causeOK = i === ch.real;
+        var rel = G.opened.filter(function (k) { return ch.ev[k][1] !== "Opinión"; }).length, op = G.opened.some(function (k) { return ch.ev[k][1] === "Opinión"; });
+        var pts = (G.causeOK ? 10 : 0) + Math.min(5, Math.round(rel * 2.5));
+        b.setAttribute("aria-pressed", "true"); b.querySelector(".bx").textContent = "✓"; bars();
+        var txt = G.causeOK ? "Acertaste: la causa real es «" + ch.hyp[ch.real].toLowerCase() + "». " : "No era esa. La evidencia apuntaba a «" + ch.hyp[ch.real].toLowerCase() + "». ";
+        txt += rel < 2 ? "Con menos de 2 fuentes confiables es fácil equivocarse." : "Cruzaste varias fuentes confiables.";
+        if (op) txt += " La opinión de un directivo pesó, pero no es evidencia: así nace el sesgo de autoridad.";
+        finishStn(1, pts, G.causeOK ? "ok" : "bad", G.causeOK ? "Definiste bien el problema" : "Definiste el problema equivocado", txt + " Un buen problema define qué ideas valen la pena en la siguiente estación.");
+      };
+    });
+    bars();
+  }
+
+  /* ---------- 3. Matriz impacto–esfuerzo ---------- */
+  function r3() {
+    var ch = CH[G.ch], n = 3 + G.climate, ideas = ch.ideas.slice(0, n), placed = {}, revealed = false;
+    G.nIdeas = ideas.length;
+    $("st").innerHTML = head(2, "Decide qué probar primero", "Hoy tienes " + n + " ideas porque tu equipo se atrevió a proponer (estación 1).") +
+      '<div class="split"><div class="col" id="il" style="gap:8px"></div><div><div class="quad" id="quad"></div></div></div><button id="rv" type="button" style="align-self:flex-start" disabled>Revelar y comparar</button><div id="pickA"></div><div id="out"></div>';
+    function draw() {
+      var h = "";
+      ideas.forEach(function (it, i) {
+        h += '<div class="idea' + (placed[i] ? " done" : "") + '"><b>' + it[0] + '</b><div class="qb">' + ["qw", "ap", "re", "ev"].map(function (q) { return '<button type="button" class="' + q + (placed[i] === q ? " on" : "") + '" data-i="' + i + '" data-q="' + q + '"' + (revealed ? " disabled" : "") + '>' + QD[q] + '</button>'; }).join("") + '</div></div>';
+      });
+      $("il").innerHTML = h;
+      Array.prototype.forEach.call($("il").querySelectorAll("button"), function (b) { b.onclick = function () { placed[+b.getAttribute("data-i")] = b.getAttribute("data-q"); draw(); }; });
+      var cell = function (q, ttl) {
+        var c = ""; ideas.forEach(function (it, i) { if (placed[i] === q) c += '<span class="chipi' + (revealed ? (it[1] === q ? " ok" : " no") : "") + '" style="animation-delay:' + (i * 90) + 'ms">' + it[0].split(" ").slice(0, 3).join(" ") + '…</span>'; });
+        return '<div class="qd ' + q + '"><h4>' + ttl + '</h4>' + c + '</div>';
+      };
+      $("quad").innerHTML = '<div class="yl">IMPACTO ↑</div>' + cell("qw", "Quick wins") + cell("ap", "Apuestas grandes") + '<div class="yl" style="display:none"></div>' + cell("re", "Rellenos") + cell("ev", "Evitar") + '<div></div><div class="xl">ESFUERZO → (bajo a alto)</div>';
+      $("quad").innerHTML = '<div class="yl">IMPACTO (alto arriba)</div>' + cell("qw", "Quick wins · alto impacto, poco esfuerzo") + cell("ap", "Apuestas grandes · alto impacto, mucho esfuerzo") + cell("re", "Rellenos · bajo impacto, poco esfuerzo") + cell("ev", "Evitar · bajo impacto, mucho esfuerzo") + '<div></div><div class="xl">ESFUERZO → de poco a mucho</div>';
+      $("rv").disabled = revealed || Object.keys(placed).length !== ideas.length;
+    }
+    draw();
+    $("rv").onclick = function () {
+      revealed = true; draw();
+      var ok = 0; ideas.forEach(function (it, i) { if (placed[i] === it[1]) ok++; });
+      var h = '<p class="ask">Resultado: acertaste ' + ok + ' de ' + ideas.length + '. Ahora elige la idea que vas a probar en la estación 5:</p><div class="opts">';
+      ideas.forEach(function (it, i) { h += '<button type="button" class="tog" data-i="' + i + '"><span class="bx"></span><span><b>' + it[0] + '</b><br><span class="muted">' + QD[it[1]] + '. ' + it[4] + '</span></span></button>'; });
+      $("pickA").innerHTML = h + "</div>";
+      G.ok3 = ok;
+      Array.prototype.forEach.call($("pickA").querySelectorAll(".tog"), function (b) {
+        b.onclick = function () {
+          var i = +b.getAttribute("data-i"); G.idea = i; G.ideaQ = ideas[i][1];
+          Array.prototype.forEach.call($("pickA").querySelectorAll(".tog"), function (x) { x.disabled = true; }); b.setAttribute("aria-pressed", "true"); b.querySelector(".bx").textContent = "✓";
+          var pts = Math.round(ok / ideas.length * 15), q = ideas[i][1];
+          var t = (q === "qw" || q === "ap") ? "Elegiste una idea de " + QD[q].toLowerCase() + ": vale la pena probarla." : "Elegiste una idea de " + QD[q].toLowerCase() + ": probablemente no mueva la aguja.";
+          finishStn(2, pts, ok >= ideas.length - 1 ? "ok" : (ok >= ideas.length / 2 ? "warn" : "bad"), "Ubicaste bien " + ok + " de " + ideas.length + " ideas", t + " La matriz sirve para decidir qué probar primero y qué descartar, con datos y no con simpatías.");
+        };
+      });
+      $("rv").hidden = true; $("pickA").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+    };
+  }
+
+  /* ---------- 4. Portafolio 70/20/10 ---------- */
+  function r4() {
+    var ch = CH[G.ch], ideas = ch.ideas.slice(0, G.nIdeas), cnt = { "Núcleo": 0, "Adyacente": 0, "Transformacional": 0 };
+    ideas.forEach(function (i) { cnt[i[2]]++; });
+    var al = [40, 30, 30], NM = ["Núcleo", "Adyacente", "Transformacional"], DS = ["Mejorar lo que ya hacemos", "Expandir a algo cercano", "Crear algo realmente nuevo"], COL = ["var(--b1)", "var(--b3)", "var(--b2)"], done = false;
+    $("st").innerHTML = head(3, "Reparte el riesgo de tu portafolio", "Tu lista de ideas tiene: núcleo " + cnt["Núcleo"] + ", adyacente " + cnt["Adyacente"] + ", transformacional " + cnt["Transformacional"] + ".") +
+      '<div class="col" id="steps4" style="gap:8px"></div><div class="stack" id="stack"></div><div class="mrow"><span>Riesgo del portafolio</span><div class="track"><div class="fill" id="rk"></div></div><b id="rkv"></b></div><div class="mrow"><span>Retorno cercano</span><div class="track"><div class="fill" id="rc"></div></div><b id="rcv"></b></div><div class="mrow"><span>Retorno a 3 años o más</span><div class="track"><div class="fill" id="rl"></div></div><b id="rlv"></b></div>' +
+      '<p class="tiny muted" id="tot"></p><button id="ok4" type="button" style="align-self:flex-start">Confirmar el reparto</button><div id="out"></div>';
+    function draw() {
+      var h = "", tot = al[0] + al[1] + al[2];
+      NM.forEach(function (nm, i) { h += '<div class="step10"><span><b>' + nm + '</b><br><span class="tiny muted">' + DS[i] + '</span></span><span class="ctl"><button type="button" class="ghost" data-i="' + i + '" data-d="-10"' + (done || al[i] <= 0 ? " disabled" : "") + ' aria-label="Quitar 10 puntos a ' + nm + '">−</button><b>' + al[i] + ' %</b><button type="button" class="ghost" data-i="' + i + '" data-d="10"' + (done || tot >= 100 ? " disabled" : "") + ' aria-label="Sumar 10 puntos a ' + nm + '">+</button></span></div>'; });
+      $("steps4").innerHTML = h;
+      $("stack").innerHTML = NM.map(function (nm, i) { return '<div style="flex-grow:' + Math.max(al[i], 0.001) + ';flex-basis:0;background:' + COL[i] + '">' + (al[i] >= 10 ? al[i] + " %" : "") + '</div>'; }).join("");
+      var rk = Math.round(al[1] * 0.5 + al[2] * 1), rc = Math.round(al[0] + al[1] * 0.5), rl = Math.round(al[2] + al[1] * 0.5);
+      [["rk", rk], ["rc", rc], ["rl", rl]].forEach(function (x) { $(x[0]).style.width = Math.min(100, x[1]) + "%"; $(x[0] + "v").textContent = Math.min(100, x[1]) + "%"; });
+      $("rk").style.backgroundColor = rk > 45 ? "var(--bad)" : (rk > 30 ? "var(--warn)" : "var(--good)"); $("rc").style.backgroundColor = "var(--teal)"; $("rl").style.backgroundColor = "var(--b2)";
+      $("tot").textContent = tot === 100 ? "Total: 100 %. Listo para confirmar. Para mover el reparto, quita primero de otro lado." : "Total: " + tot + " %. Debe sumar exactamente 100 %.";
+      $("ok4").disabled = done || tot !== 100;
+      Array.prototype.forEach.call($("steps4").querySelectorAll("button"), function (b) { b.onclick = function () { var i = +b.getAttribute("data-i"), d = +b.getAttribute("data-d"); al[i] = Math.max(0, Math.min(100, al[i] + d)); draw(); }; });
+    }
+    draw();
+    $("ok4").onclick = function () {
+      done = true; draw(); G.port = al.slice();
+      var dist = Math.abs(al[0] - 70) + Math.abs(al[1] - 20) + Math.abs(al[2] - 10), close = Math.max(0, 1 - dist / 100), pts = Math.round(close * 10), t;
+      if (al[2] === 0) t = "Sin apuesta transformacional hoy estás cómodo, pero dentro de 5 años puede que tu modelo ya no funcione.";
+      else if (al[0] < 50) t = "Demasiado riesgo: el núcleo es el que paga las cuentas mientras las apuestas maduran.";
+      else if (al[0] > 85) t = "Demasiado conservador: mejoras lo de siempre y no preparas el futuro.";
+      else t = "Un reparto sano: el núcleo sostiene el presente y las otras dos preparan el futuro.";
+      finishStn(3, pts, pts >= 8 ? "ok" : (pts >= 5 ? "warn" : "bad"), "Tu portafolio quedó " + al[0] + "/" + al[1] + "/" + al[2], t + " La referencia es 70/20/10, no una regla exacta.");
+    };
+  }
+
+  /* ---------- 5. Lean Startup y Kickbox ---------- */
+  var MVPS = [
+    { k: "Nivel 1 · Prueba de humo", d: "Encuesta o maqueta con pocas personas.", cost: 10, w: 1, noise: 0.22, eff: 0.75 },
+    { k: "Nivel 2 · Piloto de 30 días", d: "Un grupo real con la versión mínima.", cost: 40, w: 4, noise: 0.08, eff: 1 },
+    { k: "Nivel 3 · Plataforma completa", d: "Se construye todo antes de probar.", cost: 150, w: 12, noise: 0.04, eff: 0.35 }
+  ];
+  function r5() {
+    var ch = CH[G.ch], it = ch.ideas[G.idea], mv = -1, tc = -1, sg = false, ran = false;
+    $("st").innerHTML = head(4, "Prueba barato antes de escalar", "") +
+      '<div class="dossier"><span class="st">Idea a probar</span><h3>' + it[0] + '</h3><p class="tiny muted">' + QD[it[1]] + " · " + it[2] + '</p></div>' +
+      '<p class="ask">1. ¿Qué tan grande es tu experimento?</p><div class="mvps" id="mvps"></div><p class="ask">2. ¿Con qué tecnología?</p><div class="opts" id="tcs"></div><div id="sgw"></div><p class="tiny muted" id="cost5"></p><button id="run" type="button" style="align-self:flex-start" disabled>Correr el experimento</button><div id="res5"></div><div id="out"></div>';
+    function cost() { return (mv >= 0 ? MVPS[mv].cost : 0) + (tc >= 0 ? TECH[tc].cost : 0) + (sg ? 10 : 0); }
+    function draw() {
+      $("mvps").innerHTML = MVPS.map(function (m, i) { return '<button type="button" class="mv" data-i="' + i + '" aria-pressed="' + (mv === i) + '"' + (ran || m.cost > rem() ? " disabled" : "") + '><span>' + m.k + '</span><small>' + m.d + '</small><small>' + mny(m.cost) + " · " + m.w + (m.w === 1 ? " semana" : " semanas") + '</small></button>'; }).join("");
+      $("tcs").innerHTML = TECH.map(function (t, i) { return '<button type="button" class="tog" data-i="' + i + '" aria-pressed="' + (tc === i) + '"' + (ran ? " disabled" : "") + '><span class="bx">' + (tc === i ? "✓" : "") + '</span><span><b>' + t.k + '</b> · ' + mny(t.cost) + '<br><span class="muted">' + t.care + '</span></span></button>'; }).join("");
+      $("sgw").innerHTML = (tc === 1 || tc === 2) ? '<button type="button" class="tog" id="sg" aria-pressed="' + sg + '"' + (ran ? " disabled" : "") + '><span class="bx">' + (sg ? "✓" : "") + '</span><span><b>Consentimiento y comité de datos</b> · ' + mny(10) + '<br><span class="muted">Dice qué datos se usan y quién los ve.</span></span></button>' : "";
+      var c = cost(); $("cost5").textContent = mv < 0 || tc < 0 ? "Elige el tamaño del experimento y la tecnología." : "Costo del experimento: " + mny(c) + (c > rem() ? " · no alcanza el presupuesto" : "");
+      $("run").disabled = ran || mv < 0 || tc < 0 || c > rem();
+      Array.prototype.forEach.call($("mvps").children, function (b) { b.onclick = function () { mv = +b.getAttribute("data-i"); draw(); }; });
+      Array.prototype.forEach.call($("tcs").children, function (b) { b.onclick = function () { tc = +b.getAttribute("data-i"); if (tc !== 1 && tc !== 2) sg = false; draw(); }; });
+      var s = $("sg"); if (s) s.onclick = function () { sg = !sg; draw(); };
+      hudB();
+    }
+    draw();
+    $("run").onclick = function () {
+      ran = true; var m = MVPS[mv], c = cost(); G.expSp += c; draw();
+      var fit = tc === it[3] ? 0.1 : (tc === 0 ? 0 : -0.08), risk = ((tc === 1 || tc === 2) && !sg) ? -0.08 : 0;
+      var T = 0.3 + (it[1] === "qw" || it[1] === "ap" ? 0.25 : 0) + (G.causeOK ? 0.1 : -0.1) + 0.03 * G.climate + fit + risk;
+      T = Math.max(0.05, Math.min(0.95, T));
+      var obs = Math.max(0.03, Math.min(0.97, T + (Math.random() * 2 - 1) * m.noise));
+      G.T = T; G.techFit = fit > 0; G.mvp = mv; G.tech = tc;
+      var rows = [["Adopción", obs], ["Satisfacción", Math.min(0.97, obs * 0.9 + 0.05)], ["Intención de quedarse", Math.min(0.97, obs * 0.85 + 0.06)]];
+      $("res5").innerHTML = '<p class="sub">Lo que midió tu experimento (' + m.w + (m.w === 1 ? " semana" : " semanas") + ')</p>' + rows.map(function (r, i) { var v = Math.round(r[1] * 100); return '<div class="mrow"><span>' + r[0] + '</span><div class="track"><div class="fill" data-w="' + v + '" style="background-color:' + (v >= 55 ? "var(--good)" : (v >= 35 ? "var(--warn)" : "var(--bad)")) + '"></div></div><b>' + v + '%</b></div>'; }).join("") +
+        ((tc === 1 || tc === 2) && !sg ? '<div class="al bad" style="margin-top:8px"><i>!</i><span>Alerta de privacidad: usaste datos de personas sin consentimiento ni comité de datos.</span></div>' : "") +
+        '<p class="ask" style="margin-top:10px">Con estos datos, ¿qué decides?</p><div class="ctrls" id="dec"><button type="button" data-d="seguir">Seguir y escalar</button><button type="button" class="ghost" data-d="pivotar">Pivotar</button><button type="button" class="ghost" data-d="parar">Parar</button></div>';
+      requestAnimationFrame(function () { requestAnimationFrame(function () { Array.prototype.forEach.call(document.querySelectorAll("#res5 .fill"), function (f) { f.style.width = f.getAttribute("data-w") + "%"; }); }); });
+      Array.prototype.forEach.call($("dec").children, function (b) {
+        b.onclick = function () {
+          var d = b.getAttribute("data-d"), real = T >= 0.55 ? "seguir" : (T >= 0.35 ? "pivotar" : "parar"), okd = d === real;
+          Array.prototype.forEach.call($("dec").children, function (x) { x.disabled = true; });
+          G.dec = d; G.decOK = okd;
+          var pts = Math.round((okd ? 0.6 : 0) * 15 + 0.4 * m.eff * 15);
+          var t = "Con una prueba más amplia habrías visto " + Math.round(T * 100) + " % de adopción, y lo correcto era «" + real + "». ";
+          t += mv === 0 ? "Una prueba tan pequeña es barata, pero con mucho ruido." : (mv === 1 ? "El piloto de 30 días dio el mejor equilibrio entre costo y aprendizaje." : "Construiste todo antes de aprender: caro y lento.");
+          finishStn(4, pts, okd ? "ok" : "bad", okd ? "Decisión acertada: " + d : "Decisión equivocada: " + d, t);
+        };
+      });
+      $("res5").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+    };
+  }
+  /* ---------- 6. LEGO Serious Play: física simple de apoyo ---------- */
+  function overlap(a, b) { return Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x); }
+  function tops(list) { var t = []; for (var c = 0; c < COLS; c++) t.push(0); list.forEach(function (b) { for (var c = b.x; c < b.x + b.w; c++) t[c] = Math.max(t[c], b.r + b.h); }); return t; }
+  function landing(list, p, x) { var t = tops(list), r = 0; for (var c = x; c < x + p.w; c++) r = Math.max(r, t[c]); return r + p.h > ROWS ? -1 : r; }
+  function stability(list) {
+    var res = {};
+    list.forEach(function (b) {
+      var lo, hi;
+      if (b.r === 0) { lo = b.x; hi = b.x + b.w; } else {
+        lo = 99; hi = -1;
+        list.forEach(function (s) { if (s !== b && s.r + s.h === b.r && overlap(b, s) > 0) { lo = Math.min(lo, Math.max(b.x, s.x)); hi = Math.max(hi, Math.min(b.x + b.w, s.x + s.w)); } });
+      }
+      var seen = {}, mass = 0, mx = 0;
+      (function walk(n) { if (seen[n.id]) return; seen[n.id] = 1; var m = n.w * n.h; mass += m; mx += m * (n.x + n.w / 2); list.forEach(function (j) { if (j.r === n.r + n.h && overlap(n, j) > 0) walk(j); }); })(b);
+      var com = mx / mass; res[b.id] = hi >= 0 && com >= lo - 1e-6 && com <= hi + 1e-6;
+    });
+    return res;
+  }
+  function tmetrics() {
+    var T = G.tw, n = T.bricks.length, studs = [0, 0, 0, 0, 0], spent = 0, rows = 0, stab = stability(T.bricks), weak = 0;
+    T.bricks.forEach(function (b) { studs[b.t] += b.w * b.h; spent += b.cost; rows = Math.max(rows, b.r + b.h); if (!stab[b.id]) weak++; });
+    var ch = CH[G.ch], need = TY.map(function (t, i) { return t.need + (i === ch.keyT ? 1 : 0); });
+    var cover = studs.map(function (s, i) { return Math.min(1, s / need[i]); });
+    var tot = studs.reduce(function (a, b) { return a + b; }, 0), mx = tot ? Math.max.apply(null, studs) / tot : 0;
+    var bal = Math.max(0, Math.min(1, 1 - Math.max(0, mx - 0.4) * 1.5)), avg = cover.reduce(function (a, b) { return a + b; }, 0) / 5;
+    return { n: n, studs: studs, tot: tot, need: need, cover: cover, avg: avg, bal: bal, mx: mx, stabF: n ? (n - weak) / n : 0, stabMap: stab, weak: weak, spent: spent, rows: rows, tl: Math.max(0, T.sec / 300) };
+  }
+  function brickSVG(b, cls, bad) {
+    var Ty = TY[b.t], px = X0 + b.x * CELL, py = YB - (b.r + b.h) * CELL, w = b.w * CELL, h = b.h * CELL, s = "";
+    s += '<g class="brk ' + (cls || "") + (bad ? " bad" : "") + '" data-id="' + (b.id || "") + '"><title>' + esc(b.n) + " · " + Ty.k + " · " + mny(b.cost) + '</title>';
+    for (var k = 0; k < b.w; k++) s += '<rect x="' + (px + k * CELL + 9) + '" y="' + (py - 6) + '" width="' + (CELL - 18) + '" height="8" rx="3" fill="' + Ty.c + '" stroke="rgba(0,0,0,.28)"/>';
+    s += '<rect class="body" x="' + (px + 1) + '" y="' + (py + 1) + '" width="' + (w - 2) + '" height="' + (h - 2) + '" rx="5" fill="' + Ty.c + '"/><rect x="' + (px + 5) + '" y="' + (py + 4) + '" width="' + (w - 10) + '" height="6" rx="3" fill="#fff" opacity=".2"/>';
+    s += '<text x="' + (px + w / 2) + '" y="' + (py + h / 2 + 5) + '" text-anchor="middle">' + Ty.s + '</text>';
+    if (bad) s += '<circle class="warnic" cx="' + (px + w - 10) + '" cy="' + (py + 10) + '" r="9"/><text class="warnt" x="' + (px + w - 10) + '" y="' + (py + 14) + '" text-anchor="middle">!</text>';
+    return s + "</g>";
+  }
+  function drawBoard(dropId) {
+    var T = G.tw, s = "", i, stab = stability(T.bricks);
+    for (i = 0; i <= COLS; i++) s += '<line class="gl" x1="' + (X0 + i * CELL) + '" y1="' + (YB - ROWS * CELL) + '" x2="' + (X0 + i * CELL) + '" y2="' + YB + '"/>';
+    for (i = 0; i <= ROWS; i++) s += '<line class="gl" x1="' + X0 + '" y1="' + (YB - i * CELL) + '" x2="' + (X0 + COLS * CELL) + '" y2="' + (YB - i * CELL) + '"/>';
+    s += '<rect x="2" y="' + YB + '" width="476" height="30" rx="6" fill="var(--plate)"/>';
+    for (i = 0; i < COLS; i++) s += '<rect x="' + (X0 + i * CELL + 10) + '" y="' + (YB + 4) + '" width="' + (CELL - 20) + '" height="7" rx="3" fill="#fff" opacity=".25"/>';
+    s += '<text x="240" y="' + (YB + 25) + '" text-anchor="middle" style="fill:#fff;font-family:Sora,sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em">PROPÓSITO · BASE DEL PROYECTO</text><g id="gl"></g>';
+    T.bricks.slice().sort(function (a, b) { return a.r - b.r; }).forEach(function (b) { s += brickSVG(b, b.id === dropId ? "fall" : "", !stab[b.id]); });
+    s += '<g id="ghost"></g>'; $("board").innerHTML = s;
+    if (dropId) { var el = $("board").querySelector('.brk[data-id="' + dropId + '"]'), nb = T.bricks.filter(function (b) { return b.id === dropId; })[0]; if (el && nb) el.style.setProperty("--d", "-" + ((ROWS - nb.r) * CELL + 40) + "px"); }
+    ghost();
+  }
+  function ghost() {
+    var g = $("ghost"), T = G.tw; if (!g) return;
+    if (T.phase !== "build" || T.paused || T.tool === null || T.tool === "erase") { g.innerHTML = ""; $("gl").innerHTML = ""; return; }
+    var p = PC[T.tool], x = Math.max(0, Math.min(COLS - p.w, T.gc)), r = landing(T.bricks, p, x);
+    if (r < 0) { g.innerHTML = '<text x="240" y="40" text-anchor="middle" style="fill:var(--bad);font-weight:700;font-size:13px">Altura máxima alcanzada</text>'; $("gl").innerHTML = ""; return; }
+    var nb = { id: -1, t: p.t, n: p.n, w: p.w, h: p.h, x: x, r: r, cost: p.cost }, ok = stability(T.bricks.concat([nb]))[-1];
+    g.innerHTML = brickSVG(nb, "gh" + (ok ? "" : " no"), !ok);
+    $("gl").innerHTML = '<rect class="guide" x="' + (X0 + x * CELL) + '" y="' + (YB - ROWS * CELL) + '" width="' + (p.w * CELL) + '" height="' + (ROWS * CELL) + '"/>';
+  }
+  function mmss(s) { s = Math.max(0, s); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function thumb(p) {
+    var u = 12, s = '<svg viewBox="0 0 52 32" aria-hidden="true">';
+    for (var k = 0; k < p.w; k++) s += '<rect x="' + (2 + k * u + 2) + '" y="' + (28 - p.h * u - 4) + '" width="8" height="4" rx="2" fill="' + TY[p.t].c + '"/>';
+    return s + '<rect x="2" y="' + (28 - p.h * u) + '" width="' + (p.w * u) + '" height="' + (p.h * u) + '" rx="3" fill="' + TY[p.t].c + '"/></svg>';
+  }
+  var lastAl = "";
+  function tAlerts(c) {
+    var T = G.tw, a = [], av = T.tb - c.spent, rb = av / T.tb;
+    if (T.phase !== "build") return "";
+    if (!c.n) a.push(["ok", "i", "Empieza por la base: piezas anchas abajo y angostas arriba. Cada pieza cuesta dinero."]);
+    if (c.weak) a.push(["bad", "!", "Estructura inestable: " + c.weak + (c.weak === 1 ? " pieza queda" : " piezas quedan") + " en voladizo (marcadas con !). Apóyalas sobre piezas más anchas o quítalas."]);
+    if (rb < 0.1) a.push(["bad", "$", "Presupuesto crítico: quedan " + mny(av) + "."]); else if (rb < 0.25) a.push(["warn", "$", "Alerta de presupuesto: quedan " + mny(av) + ". Prioriza lo que falta."]);
+    if (T.sec <= 20) a.push(["bad", "⏱", "Tiempo crítico: quedan " + T.sec + " segundos."]); else if (T.sec <= 60) a.push(["warn", "⏱", "Alerta de tiempo: queda menos de un minuto."]);
+    if (c.n >= 6) { var miss = TY.filter(function (t, i) { return c.studs[i] === 0; }).map(function (t) { return t.k; }); if (miss.length) a.push(["warn", "!", "Tu torre aún no tiene: " + miss.join(", ") + "."]); }
+    if (c.tot >= 8 && c.mx > 0.45) { var ti = c.studs.indexOf(Math.max.apply(null, c.studs)); a.push(["warn", "!", "Torre desequilibrada: más del 45 % de las piezas son de " + TY[ti].k + "."]); }
+    if (c.n >= 5 && !a.length) a.push(["ok", "✓", "Sin alertas: presupuesto, tiempo y estructura bajo control."]);
+    return a.map(function (x, i) { return '<div class="al ' + x[0] + '" style="animation-delay:' + (i * 90) + 'ms"><i>' + x[1] + '</i><span>' + x[2] + '</span></div>'; }).join("");
+  }
+  function tsync(drop) {
+    var T = G.tw, c = tmetrics(), av = T.tb - c.spent, rb = av / T.tb, rt = T.sec / 300; G.tc = c;
+    drawBoard(drop);
+    count($("tbV"), T.shB, av, mny, 500); T.shB = av; $("tbF").style.width = Math.round(rb * 100) + "%"; $("tbF").style.backgroundColor = LC[lvl(rb)]; $("tbK").className = "kpi" + (lvl(rb) === "ok" ? "" : " alert-" + lvl(rb));
+    $("ttV").textContent = mmss(T.sec); $("ttF").style.width = Math.round(rt * 100) + "%"; $("ttF").style.backgroundColor = LC[lvl(rt)]; $("ttK").className = "kpi" + (lvl(rt) === "ok" ? "" : " alert-" + lvl(rt));
+    Array.prototype.forEach.call($("pal").children, function (b) { var i = +b.getAttribute("data-i"); b.disabled = PC[i].cost > av || T.phase !== "build"; b.className = "pc" + (T.tool === i ? " sel" : ""); b.setAttribute("aria-pressed", T.tool === i ? "true" : "false"); });
+    $("erase").setAttribute("aria-pressed", T.tool === "erase" ? "true" : "false"); $("erase").className = T.tool === "erase" ? "" : "ghost";
+    $("board").setAttribute("class", T.tool === "erase" ? "erasing" : (T.tool !== null ? "drawing" : ""));
+    var lg = ""; TY.forEach(function (t, i) { lg += '<div class="lg" style="--c:' + t.c + '"><i></i><span>' + t.k + '</span><div class="track"><div class="fill" style="width:' + Math.round(c.cover[i] * 100) + '%"></div></div><b>' + c.studs[i] + "/" + c.need[i] + '</b></div>'; });
+    $("legend").innerHTML = lg;
+    var h = tAlerts(c); if (h !== lastAl) { $("alerts").innerHTML = h; lastAl = h; }
+    $("undo").disabled = !T.bricks.length || T.phase !== "build"; $("present").disabled = !T.bricks.length || T.phase !== "build";
+    $("ctrls").hidden = T.phase !== "build"; $("pause").hidden = T.phase !== "build";
+    $("boardCap").textContent = T.phase !== "build" ? "" : (T.tool === "erase" ? "Toca la pieza de arriba que quieras retirar." : (T.tool !== null ? "Mueve el cursor, usa las flechas ◀ ▶ y suelta la pieza." : "Elige una pieza de la caja para empezar."));
+    hudB();
+  }
+  function tplace() {
+    var T = G.tw; if (!T || T.phase !== "build" || T.paused || T.tool === null || T.tool === "erase") return;
+    var p = PC[T.tool], x = Math.max(0, Math.min(COLS - p.w, T.gc)), r = landing(T.bricks, p, x), spent = towerSp();
+    if (r < 0 || p.cost > T.tb - spent) return;
+    var id = T.nid++; T.bricks.push({ id: id, t: p.t, n: p.n, w: p.w, h: p.h, x: x, r: r, cost: p.cost });
+    if (PC[T.tool].cost > T.tb - spent - p.cost) T.tool = null;
+    tsync(id);
+  }
+  function r6() {
+    var ch = CH[G.ch], tb = Math.max(0, Math.min(380, G.B - G.expSp));
+    G.tw = { bricks: [], nid: 1, tool: null, gc: 4, sec: 300, paused: false, phase: "build", tb: tb, shB: tb };
+    var pal = ""; PC.forEach(function (p, i) { pal += '<button type="button" class="pc" style="--c:' + TY[p.t].c + '" data-i="' + i + '" aria-label="' + esc(p.n) + ', ' + TY[p.t].k + ', ' + mny(p.cost) + '">' + thumb(p) + '<span>' + esc(p.n) + '</span><small>' + TY[p.t].k + ' · ' + mny(p.cost) + '</small></button>'; });
+    $("st").innerHTML = head(5, "Construye el modelo para escalar el piloto", "Para este reto pesa más: " + TY[ch.keyT].k.toLowerCase() + ". Tu presupuesto de escalamiento sale de lo que te queda tras explorar.") +
+      '<div class="split"><div class="col"><div class="kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="kpi" id="tbK"><div class="lab"><span>Escalamiento</span></div><div class="val"><span id="tbV"></span></div><div class="track"><div class="fill" id="tbF"></div></div></div><div class="kpi" id="ttK"><div class="lab"><span>Tiempo</span><button type="button" class="ghost pause" id="pause">Pausar</button></div><div class="val t" id="ttV"></div><div class="track"><div class="fill" id="ttF"></div></div></div></div>' +
+      '<div class="board"><svg id="board" viewBox="0 0 480 450" tabindex="0" role="application" aria-label="Tablero de construcción. Flechas izquierda y derecha mueven la pieza, Enter la suelta."></svg></div>' +
+      '<div class="ctrls" id="ctrls"><button type="button" class="ghost" id="lf" aria-label="Mover a la izquierda">◀</button><button type="button" id="drop">Soltar pieza</button><button type="button" class="ghost" id="rt" aria-label="Mover a la derecha">▶</button><button type="button" class="ghost" id="undo">Deshacer</button><button type="button" class="ghost" id="erase" aria-pressed="false">Quitar pieza</button></div><p class="muted tiny" id="boardCap" style="text-align:center"></p></div>' +
+      '<div class="col"><p class="sub">Caja de piezas · elige una y colócala</p><div class="pal" id="pal">' + pal + '</div><p class="sub">Lo que tu torre necesita</p><div class="legend" id="legend"></div><div class="alerts" id="alerts" aria-live="polite"></div><button id="present" type="button" style="align-self:flex-start">Presentar mi torre</button></div></div><div id="story"></div><div id="out"></div>';
+    lastAl = "";
+    Array.prototype.forEach.call($("pal").children, function (b) { b.onclick = function () { var i = +b.getAttribute("data-i"), T = G.tw; T.tool = T.tool === i ? null : i; tsync(); }; });
+    $("board").addEventListener("pointermove", function (e) {
+      var T = G.tw; if (T.phase !== "build" || T.tool === null || T.tool === "erase") return;
+      var r = $("board").getBoundingClientRect(), vx = (e.clientX - r.left) * 480 / r.width, p = PC[T.tool];
+      T.gc = Math.max(0, Math.min(COLS - p.w, Math.round((vx - X0) / CELL - p.w / 2))); ghost();
+    });
+    $("board").addEventListener("click", function (e) {
+      var T = G.tw; if (T.phase !== "build" || T.paused) return;
+      if (T.tool === "erase") { var g = e.target.closest ? e.target.closest(".brk") : null; if (g) teraseAt(+g.getAttribute("data-id")); return; }
+      if (T.tool === null) return;
+      var r = $("board").getBoundingClientRect(), vx = (e.clientX - r.left) * 480 / r.width, p = PC[T.tool];
+      T.gc = Math.max(0, Math.min(COLS - p.w, Math.round((vx - X0) / CELL - p.w / 2)));
+      if (e.pointerType === "touch" || e.detail === 0) { ghost(); return; }
+      tplace();
+    });
+    $("board").addEventListener("keydown", function (e) {
+      var T = G.tw; if (T.phase !== "build") return;
+      if (e.key === "ArrowLeft") { T.gc = Math.max(0, T.gc - 1); ghost(); e.preventDefault(); } else if (e.key === "ArrowRight") { T.gc = Math.min(COLS - 1, T.gc + 1); ghost(); e.preventDefault(); }
+      else if (e.key === "Enter" || e.key === " ") { tplace(); e.preventDefault(); } else if (e.key === "Escape") { T.tool = null; tsync(); }
+    });
+    $("lf").onclick = function () { G.tw.gc = Math.max(0, G.tw.gc - 1); ghost(); };
+    $("rt").onclick = function () { G.tw.gc = Math.min(COLS - 1, G.tw.gc + 1); ghost(); };
+    $("drop").onclick = tplace;
+    $("undo").onclick = function () { var T = G.tw; if (!T.bricks.length || T.phase !== "build") return; var top = T.bricks.slice().sort(function (a, b) { return b.id - a.id; })[0]; T.bricks = T.bricks.filter(function (x) { return x !== top; }); tsync(); };
+    $("erase").onclick = function () { var T = G.tw; if (T.phase !== "build") return; T.tool = T.tool === "erase" ? null : "erase"; tsync(); };
+    $("pause").onclick = function () { var T = G.tw; if (T.phase !== "build") return; T.paused = !T.paused; $("pause").textContent = T.paused ? "Reanudar" : "Pausar"; $("boardCap").textContent = T.paused ? "En pausa: discute con tu equipo y reanuda cuando quieran." : ""; ghost(); };
+    $("present").onclick = function () { toStory(false); };
+    clearInterval(timer); timer = setInterval(function () { var T = G && G.tw; if (!T || T.phase !== "build" || T.paused || G.stn !== 5) return; T.sec--; if (T.sec <= 0) { T.sec = 0; toStory(true); return; } tsync(); }, 1000);
+    tsync();
+  }
+  function teraseAt(id) {
+    var T = G.tw, b = T.bricks.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    if (T.bricks.some(function (j) { return j.r === b.r + b.h && overlap(b, j) > 0; })) { $("alerts").innerHTML = '<div class="al warn"><i>!</i><span>Retira primero las piezas que están encima.</span></div>'; lastAl = ""; return; }
+    T.bricks = T.bricks.filter(function (x) { return x.id !== id; }); tsync();
+  }
+  function toStory(timeUp) {
+    var T = G.tw; clearInterval(timer); T.phase = "story"; T.tool = null; tsync();
+    $("story").innerHTML = '<div class="col story" style="margin-top:12px"><div><span class="who">Compartir · LEGO® Serious Play®</span><h3>' + (timeUp ? "Se acabó el tiempo. " : "") + 'Cuenta tu historia: el modelo habla por ti</h3></div><p class="muted tiny">En voz alta con tu equipo. Escribirlo es opcional.</p><label class="q">¿Qué representa la pieza más alta de tu torre?<textarea id="s1"></textarea></label><label class="q">¿Cuál es la conexión más frágil y quién la sostiene?<textarea id="s2"></textarea></label><button id="fin6" type="button" style="align-self:flex-start">Terminar la construcción</button></div>';
+    $("fin6").onclick = function () {
+      G.story1 = $("s1").value.trim(); G.story2 = $("s2").value.trim();
+      var c = G.tc = tmetrics(), pts = Math.round(c.avg * c.bal * 12) + Math.round(c.stabF * 8);
+      var minI = 0; c.cover.forEach(function (v, i) { if (v < c.cover[minI]) minI = i; }); G.minI = minI;
+      var t = c.cover[minI] >= 1 ? "Cubriste los cinco ingredientes." : "Tu ingrediente más flojo fue " + TY[minI].k.toLowerCase() + " (" + c.studs[minI] + " de " + c.need[minI] + " cuadros).";
+      if (c.weak) t += " Además, " + c.weak + (c.weak === 1 ? " pieza quedó" : " piezas quedaron") + " sin buen apoyo: así se caen los proyectos que descansan sobre una sola persona.";
+      $("fin6").disabled = true;
+      G.done[5] = pts; journey();
+      $("out").innerHTML = lessonBox(pts >= 14 ? "ok" : (pts >= 9 ? "warn" : "bad"), "Tu torre vale " + pts + " de 20 puntos", t + " Construir con las manos hace visible lo que un informe esconde: qué falta y qué se apoya en qué.") + '<button id="cont" type="button" style="align-self:flex-start;margin-top:12px">Continuar a la estación 7</button>';
+      $("cont").onclick = function () { G.stn = 6; station(); };
+      $("out").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+    };
+    $("story").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+  }
+
+  /* ---------- 7. Cuatro candados, comité e imprevisto ---------- */
+  function r7() {
+    var sel = {}, ch = CH[G.ch];
+    $("st").innerHTML = head(6, "Que perdure: cierra los candados", "") +
+      '<p class="ask">Elige los candados que cerrarás (cuestan dinero):</p><div class="cands" id="cands"></div><p class="tiny muted" id="cnote"></p><button id="go7" type="button" style="align-self:flex-start">Presentar al comité</button><div id="com"></div><div id="out"></div>';
+    function draw() {
+      var used = 0; CANDS.forEach(function (c, i) { if (sel[i]) used += c.cost; });
+      $("cands").innerHTML = CANDS.map(function (c, i) { var on = !!sel[i]; return '<button type="button" class="cd" data-i="' + i + '" aria-pressed="' + on + '"' + (!on && c.cost > rem() - used ? " disabled" : "") + '><span>' + c.n + '</span><small>' + c.d + '</small><em>' + mny(c.cost) + '</em></button>'; }).join("");
+      $("cnote").textContent = "Disponible: " + mny(rem() - used) + (rem() - used <= 0 ? " · no queda presupuesto para más candados" : "");
+      Array.prototype.forEach.call($("cands").children, function (b) { b.onclick = function () { var i = +b.getAttribute("data-i"); if (sel[i]) delete sel[i]; else sel[i] = 1; draw(); }; });
+    }
+    draw();
+    $("go7").onclick = function () {
+      Array.prototype.forEach.call($("cands").children, function (b) { b.disabled = true; }); $("go7").disabled = true;
+      G.cands = []; CANDS.forEach(function (c, i) { if (sel[i]) { G.candSp += c.cost; G.cands.push(c); } }); hudB();
+      committee();
+    };
+  }
+  function allNv() {
+    var c = G.tc, ch = CH[G.ch], nv = [
+      0.5 * c.avg + 0.5 * Math.min(1, c.rows / 5), 0.4 * c.cover[2] + 0.3 * c.stabF + 0.3 * Math.min(1, (rem() / G.B) * 3 + 0.2),
+      0.6 * c.cover[0] + 0.4 * c.cover[3], 0.4 * c.cover[4] + 0.3 * c.cover[3] + 0.3 * c.stabF, 0.7 * c.cover[1] + 0.3 * c.cover[4]];
+    nv[0] += (G.causeOK ? 0.1 : 0) + (G.ideaQ === "qw" || G.ideaQ === "ap" ? 0.08 : 0);
+    nv[1] += G.decOK ? 0.05 : 0; nv[2] += 0.04 * G.climate; nv[4] += G.techFit ? 0.06 : 0;
+    G.cands.forEach(function (k) { k.f.forEach(function (v, j) { nv[j] += v; }); });
+    return nv.map(function (x) { return Math.max(0, Math.min(1, x)); });
+  }
+  function committee() {
+    var c = G.tc, key = CH[G.ch].key, yes = 0; c.nv = allNv(); c.stab = c.stabF; c.bl = rem() / G.B;
+    var sc = [0.6 * c.nv[1] + 0.4 * Math.min(1, c.bl * 2.5), 0.6 * c.nv[2] + 0.4 * Math.min(1, c.tl * 2.5 + 0.2), 0.7 * c.nv[2] + 0.3 * c.nv[3], 1 - 0.25 * Math.min(4, c.weak), 0.5 * c.nv[0] + 0.3 * c.nv[3] + 0.2 * c.nv[4]];
+    G.votes = SK.map(function (s, i) { var thr = i === key ? 0.6 : 0.5, x = sc[i], k; if (x >= thr + 0.1) { k = "fav"; yes += 1; } else if (x >= thr - 0.1) { k = "cond"; yes += 0.5; } else k = "contra"; return { st: k }; });
+    G.yes = yes;
+    var h = ""; G.votes.forEach(function (vt, i) { var lab = vt.st === "fav" ? "A favor" : (vt.st === "cond" ? "Con condiciones" : "En contra"); h += '<div class="vote ' + vt.st + '" style="animation-delay:' + (i * 260) + 'ms"><div class="av ' + vt.st + '">' + SK[i].a + '</div><div class="t"><b><span>' + SK[i].who + (i === key ? " · área clave" : "") + '</span><span class="badge">' + lab + '</span></b><q>' + SK[i].v[vt.st] + '</q><span class="qq">Su pregunta: ' + SK[i].q + '</span></div></div>'; });
+    G.decision = yes >= 3 ? "Iniciativa aprobada" : (yes >= 2 ? "Aprobada con condiciones" : "Iniciativa rechazada");
+    $("com").innerHTML = '<div class="col" style="margin-top:12px"><div><span class="who">Comité de decisión</span><h3>Presentas tu iniciativa</h3></div>' + h + '<div class="event ' + (yes >= 3 ? "ok" : (yes >= 2 ? "warn" : "bad")) + '" style="animation-delay:1400ms"><span class="who">Decisión</span><h3>' + G.decision + ' · ' + pc(yes) + ' de 5 votos</h3><p class="tiny">Cada voto a favor suma 1 y cada voto con condiciones suma 0,5. Con 3 o más se aprueba; con 2, se aprueba con condiciones.</p></div><button id="toEv" type="button" style="align-self:flex-start">Llega el imprevisto</button></div>';
+    people(G.votes); $("com").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" });
+    $("toEv").onclick = finish;
+  }
+
+  /* ---------- resultado ---------- */
+  function finish() {
+    var c = G.tc, ch = CH[G.ch], ev = EVENTS[Math.floor(Math.random() * EVENTS.length)], m = ev.m(c), out, ep, ecls;
+    if (m >= 0.6) { out = "La iniciativa resiste."; ep = 6; ecls = "ok"; } else if (m >= 0.4) { out = "La iniciativa se tambalea, pero sigue en pie."; ep = 3; ecls = "warn"; } else { out = "La iniciativa se cae."; ep = 0; ecls = "bad"; }
+    G.done[6] = Math.round(G.yes * 1.8) + ep; journey();
+    var pts = G.done.reduce(function (a, b) { return a + b; }, 0), verdict, vt;
+    if (pts >= 80) { verdict = "Una innovación que perdura"; vt = "Aplicaste cada técnica en su momento y se nota: causa bien definida, ideas priorizadas, pruebas baratas, torre equilibrada y candados cerrados."; }
+    else if (pts >= 55) { verdict = "Una innovación en pie, pero inclinada"; vt = "Varias técnicas funcionaron y alguna se saltó pasos. Mira dónde perdiste puntos: ahí está tu aprendizaje."; }
+    else { verdict = "Una innovación que no aguanta"; vt = "Faltaron pasos clave. Le pasa a muchas ideas buenas: se saltan el entendimiento, la prueba o los candados."; }
+    var bars = ""; STN.forEach(function (s, i) { var v = Math.round(G.done[i] / s.max * 100), cl = v >= 60 ? "var(--good)" : (v >= 40 ? "var(--warn)" : "var(--bad)"); bars += '<div class="bar"><span>' + s.k + '</span><div class="track"><div class="fill" data-w="' + v + '" style="background-color:' + cl + '"></div></div><b>' + G.done[i] + "/" + s.max + '</b></div>'; });
+    var minK = 0; STN.forEach(function (s, i) { if (G.done[i] / s.max < G.done[minK] / STN[minK].max) minK = i; });
+    var cs = G.cands.length ? G.cands.map(function (k) { return k.n.toLowerCase(); }).join(", ") : "ninguno";
+    var plan = [["Primeros 30 días", ["Practicar con el equipo: " + GOOD.slice(0, 2).join("; ").toLowerCase() + ".", "Validar la causa raíz: " + CH[G.ch].hq[G.cause].replace("¿", "").replace("?", "") + "."], "var(--b1)"],
+      ["Días 31 a 60", ["Piloto de «" + ch.ideas[G.idea][0] + "» (" + MVPS[G.mvp].k + "; " + TECH[G.tech].k + "). Decisión: " + G.dec + "."], "var(--b3)"],
+      ["Días 61 a 90", [c.cover[G.minI] >= 1 ? "Escalar con la torre construida y medir adopción." : "Cerrar el hueco de " + TY[G.minI].k.toLowerCase() + " antes de escalar.", "Candados activos: " + cs + "."], "var(--b2)"]];
+    var ph = plan.map(function (x) { return '<div style="--c:' + x[2] + '"><b>' + x[0] + '</b><ul>' + x[1].map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul></div>"; }).join("");
+    $("st").innerHTML = '<div class="shead"><span class="tag">Resultado del laboratorio</span><h2>' + ch.n + '</h2></div><div class="event ' + ecls + '"><span class="who">Imprevisto</span><h3>' + ev.n + '</h3><p>' + ev.d + ' Se pone a prueba tu ' + ev.what + '.</p><p><b>' + out + '</b></p></div>' +
+      '<div class="ringsBig"><div id="ringsF"></div><div class="rleg" id="rleg"></div></div>' + '<div class="row" style="gap:20px"><div class="big" id="score">0/100</div><div style="flex:1;min-width:180px"><h3>' + verdict + '</h3><p class="muted tiny">' + vt + '</p></div></div><div class="col sbars" style="gap:10px" id="bars">' + bars + '</div>' +
+      '<p class="tiny muted">Dónde más puntos perdiste: <b>' + STN[minK].k + '</b>. Es la técnica que más te conviene repasar.</p><div><h3 style="margin-bottom:8px">Tu plan de 30, 60 y 90 días</h3><div class="plan">' + ph + '</div></div>' +
+      '<p class="muted">Responde en el chat: ¿qué técnica te costó más y por qué? ¿Cuál aplicarías primero en tu organización?</p><label for="share" style="font-weight:700;font-size:.92rem">Resumen listo para pegar</label><textarea id="share" readonly></textarea><div class="row"><button id="copy" type="button">Copiar resumen</button><button id="again" type="button" class="ghost">Volver a jugar</button><span id="copied" class="muted" role="status"></span></div>';
+    G.ringSeen = {}; var evc = ep === 6 ? "glow" : (ep === 3 ? "wobble" : "shake");
+    $("ringsF").innerHTML = ringsSVG(true, evc);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { Array.prototype.forEach.call(document.querySelectorAll("#ringsF .arc[data-new]"), function (a) { a.style.strokeDashoffset = "0"; a.removeAttribute("data-new"); }); }); });
+    $("rleg").innerHTML = STN.map(function (s, i) { var v = G.done[i] / s.max, cl = v >= 0.6 ? "var(--good)" : (v >= 0.4 ? "var(--warn)" : "var(--bad)"); return '<div class="rl"><i style="background:' + cl + '">' + (i + 1) + '</i><span>' + s.k + '</span><b>' + G.done[i] + '/' + s.max + '</b></div>'; }).join("") + '<p class="tiny muted">Cada anillo es una técnica. Más completo y verde, mejor te fue. ' + (ep === 6 ? "El imprevisto no logró romperlo." : (ep === 3 ? "El imprevisto lo hizo tambalear." : "El imprevisto rompió el anillo exterior: los candados no alcanzaron.")) + '</p>';
+    count($("score"), 0, pts, function (v) { return v + "/100"; }, 1100);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { Array.prototype.forEach.call(document.querySelectorAll("#bars .fill"), function (f) { f.style.width = f.getAttribute("data-w") + "%"; }); }); });
+    $("share").value = "Laboratorio de Innovación · Reto: " + ch.n + " | Total: " + pts + "/100 | " + STN.map(function (s, i) { return s.s + " " + G.done[i] + "/" + s.max; }).join(", ") + " | Presupuesto usado: " + mny(G.B - rem()) + " de " + mny(G.B) + " | Idea probada: " + ch.ideas[G.idea][0] + " (" + G.dec + ") | Portafolio: " + G.port.join("/") + " | Comité: " + G.decision.toLowerCase() + " (" + pc(G.yes) + "/5) | Imprevisto: " + ev.n + " (" + out.replace(/\.$/, "") + ")" + (G.story1 ? " | Pieza más alta: " + G.story1 : "") + ".";
+    $("copy").onclick = function () { var ta = $("share"), done = function () { $("copied").textContent = "Copiado. Pégalo en el chat."; }, fb = function () { ta.focus(); ta.select(); $("copied").textContent = "Selecciona y copia el texto (Ctrl+C)."; }; try { navigator.clipboard.writeText(ta.value).then(done, fb); } catch (e) { fb(); } };
+    $("again").onclick = function () { clearInterval(timer); G = null; $("lab").hidden = true; $("pick").hidden = false; $("intro").hidden = false; $("pick").scrollIntoView({ block: "start" }); };
+    $("panel").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+  }
+
+  function renderChoices() {
+    $("chs").innerHTML = CH.map(function (c, i) { return '<button type="button" class="ch" style="--c:' + ["var(--b1)", "var(--b2)", "var(--b3)", "var(--b4)"][i] + '" data-k="' + i + '"><b>' + c.n + '</b><span>' + c.d + '</span><span class="m">Presupuesto ' + mny(600) + ' · 7 estaciones</span></button>'; }).join("");
+    Array.prototype.forEach.call($("chs").children, function (b) { b.onclick = function () { start(+b.getAttribute("data-k")); }; });
+  }
+  function start(k) {
+    clearInterval(timer);
+    G = { ringSeen: {}, ringKey: "", ch: k, B: 600, expSp: 0, candSp: 0, stn: 0, done: [], climate: 0, cands: [], tw: null, shB: 600 };
+    $("pick").hidden = true; $("intro").hidden = true; $("lab").hidden = false; $("peopleBox").hidden = true;
+    station();
+  }
+  renderChoices();
+})();
+
+</script>
+</body></html>
